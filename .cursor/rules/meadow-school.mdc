@@ -1,0 +1,22 @@
+---
+description: Meadow School product and curriculum rules for all agents
+globs:
+  - "**/*"
+---
+
+# Meadow School
+
+Private family PA home-ed app (Expo web + iOS). Learners ages 3–7. Read root `AGENTS.md` before large changes.
+
+## Must follow
+
+- Keep Meadow tutor FAB on every lesson screen; answers grounded only in lesson `groundingText` + exercises.
+- New lessons go in `content/bands/*.ts` with PA tags from `content/pa-alignment.ts`.
+- Use `lib/theme.ts` (Storybook Meadow). No purple gradients; no cream+terracotta cliché; no Inter/Roboto defaults.
+- Child surfaces: large tap targets, short copy, reading/math/drawing exercises.
+- Parent changes behind PIN (`app/parent`).
+
+## Prefer
+
+- Extending schema + band content over one-off hardcoded screens.
+- Local `askMeadow` / `answerFromLesson` over network calls for kid chat.
