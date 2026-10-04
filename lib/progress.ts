@@ -1,5 +1,97 @@
 import type { Difficulty, Exercise, Lesson } from '@/content/schema';
 
+/** Parent-facing label per scope.md skill slug */
+export const SKILL_LABELS: Record<string, string> = {
+  'letter-names': 'Letter names',
+  'count-3': 'Counting to 3',
+  'color-name': 'Color names',
+  'stop-drop': 'Fire drill basics',
+  'rhyme-play': 'Rhyming play',
+  'book-habits': 'Book habits',
+  'count-5': 'Counting to 5',
+  'shapes-basic': 'Basic shapes',
+  'sort-one': 'Sorting by color',
+  'nature-notice': 'Noticing nature',
+  'community-me': 'Neighbor helpers',
+  'beat-clap': 'Rhythm & beat',
+  'healthy-habits': 'Healthy habits',
+  'letter-sounds': 'Letter sounds',
+  'blend-cat': 'Blending: cat',
+  'blend-dog': 'Blending: dog',
+  'first-sounds': 'First sounds',
+  'count-10': 'Counting to 10',
+  'add-5': 'Adding to 5',
+  'count-20': 'Counting to 20',
+  'patterns-ab': 'AB patterns',
+  'pa-home': 'Pennsylvania is home',
+  seasons: 'Seasons & weather',
+  'kind-choices': 'Kind choices',
+  'draw-tell': 'Draw and tell',
+  'write-cvc': 'Spelling CVC words',
+  'short-a': 'Short-a families',
+  'add-10': 'Adding to 10',
+  'plant-needs': 'What plants need',
+  'pa-symbols': 'PA symbols',
+  'fire-plan': 'Family fire plan',
+  blends: 'Beginning blends',
+  'write-sentences': 'Writing sentences',
+  retell: 'Retelling stories',
+  'sub-10': 'Subtracting to 10',
+  'word-problems': 'Word problems',
+  'tens-ones': 'Tens and ones',
+  weather: 'Where rain comes from',
+  'map-skills': 'Map skills',
+  'community-rules': 'Community rules',
+};
+
+export function skillLabel(skillId: string): string {
+  return SKILL_LABELS[skillId] ?? skillId;
+}
+
+export type SkillLevel = 'new' | 'practicing' | 'solid';
+
+/** seen = completed exercises practicing this skill */
+export function skillLevel(seen: number): SkillLevel {
+  if (seen >= 3) return 'solid';
+  if (seen >= 1) return 'practicing';
+  return 'new';
+}
+
+/** Distinct skill ids practiced in a lesson, in first-appearance order */
+export function lessonSkills(lesson: Lesson): string[] {
+  const out: string[] = [];
+  for (const ex of lesson.exercises) {
+    if (!out.includes(ex.skillId)) out.push(ex.skillId);
+  }
+  return out;
+}
+
+export interface SkillSnapshot {
+  seen: number;
+  lastSeen: string;
+}
+
+/**
+ * Skills in this lesson that need review most: least-practiced first,
+ * stalest first. Only returns skills below solid.
+ */
+export function weakestSkills(
+  lesson: Lesson,
+  childId: string,
+  mastery: Record<string, SkillSnapshot>,
+  count: number
+): string[] {
+  return lessonSkills(lesson)
+    .map((skillId) => {
+      const snap = mastery[`${childId}:${skillId}`];
+      return { skillId, seen: snap?.seen ?? 0, lastSeen: snap?.lastSeen ?? '' };
+    })
+    .filter((s) => skillLevel(s.seen) !== 'solid')
+    .sort((a, b) => a.seen - b.seen || a.lastSeen.localeCompare(b.lastSeen))
+    .slice(0, Math.max(0, count))
+    .map((s) => s.skillId);
+}
+
 export function exerciseDifficulty(ex: Exercise): Difficulty {
   return ex.difficulty ?? 1;
 }

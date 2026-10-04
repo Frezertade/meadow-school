@@ -62,6 +62,12 @@ export interface ActiveLearning {
   lessonTitle?: string;
 }
 
+export interface SkillMastery {
+  /** Completed exercises practicing this skill */
+  seen: number;
+  lastSeen: string;
+}
+
 interface ProgressState {
   children: ChildProfile[];
   activeChildId: string | null;
@@ -70,6 +76,8 @@ interface ProgressState {
   activeLearning: ActiveLearning | null;
   parentUnlocked: boolean;
   voiceEnabled: boolean;
+  /** Per-child skill mastery keyed `${childId}:${skillId}` */
+  mastery: Record<string, SkillMastery>;
   /** Neural voice id (F2 default) or `browser` for device TTS only. */
   meadowVoiceId: MeadowVoiceChoice;
   /** Optional OpenAI key for smarter conversational teaching (parent desk). Never committed. */
@@ -78,7 +86,7 @@ interface ProgressState {
   setActiveChild: (id: string) => void;
   setChildBand: (id: string, band: AgeBand) => void;
   renameChild: (id: string, name: string) => void;
-  markExerciseDone: (lessonId: string, exerciseId: string, meta?: { lessonTitle?: string; detail?: string }) => void;
+  markExerciseDone: (lessonId: string, exerciseId: string, meta?: { lessonTitle?: string; detail?: string; skillId?: string }) => void;
   logEvent: (partial: Omit<LearningLog, 'id' | 'at' | 'childId' | 'childName'> & { childId?: string }) => void;
   openLesson: (lessonId: string, lessonTitle: string) => void;
   completeLesson: (lessonId: string, lessonTitle: string) => void;
@@ -127,6 +135,7 @@ export const useAppStore = create<ProgressState>()(
       activeChildId: 'child-a',
       completed: {},
       logs: [],
+      mastery: {},
       activeLearning: null,
       parentUnlocked: false,
       voiceEnabled: true,
@@ -298,6 +307,16 @@ export const useAppStore = create<ProgressState>()(
         set({
           completed: { ...get().completed, [key]: [...prev, exerciseId] },
         });
+        if (meta?.skillId) {
+          const mkey = `${child.id}:${meta.skillId}`;
+          const prior = (get().mastery ?? {})[mkey];
+          set({
+            mastery: {
+              ...(get().mastery ?? {}),
+              [mkey]: { seen: (prior?.seen ?? 0) + 1, lastSeen: new Date().toISOString() },
+            },
+          });
+        }
         pushLog(get, set, {
           kind: 'exercise_done',
           childId: child.id,
@@ -347,6 +366,7 @@ export const useAppStore = create<ProgressState>()(
         children: s.children,
         activeChildId: s.activeChildId,
         completed: s.completed,
+        mastery: s.mastery ?? {},
         voiceEnabled: s.voiceEnabled,
         meadowVoiceId: s.meadowVoiceId,
         logs: s.logs,

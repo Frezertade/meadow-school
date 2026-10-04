@@ -3,6 +3,7 @@ import { exerciseDifficulty, orderedExercises } from '@/lib/progress';
 
 export type TeachPhase =
   | 'greet'
+  | 'review'
   | 'teach'
   | 'check'
   | 'exercise_intro'
@@ -27,7 +28,11 @@ export interface TeachTurn {
 }
 
 /** Build a teaching conversation from lesson content — agent leads, does not read the whole page. */
-export function buildTeachPlan(lesson: Lesson, childName: string): TeachTurn[] {
+export function buildTeachPlan(
+  lesson: Lesson,
+  childName: string,
+  reviewLabels: string[] = []
+): TeachTurn[] {
   const name = childName.trim() || 'friend';
   const turns: TeachTurn[] = [];
 
@@ -38,6 +43,18 @@ export function buildTeachPlan(lesson: Lesson, childName: string): TeachTurn[] {
     chips: ["I'm ready!", 'Tell me more', 'Need a minute'],
     waitForChild: true,
   });
+
+  // Spaced review: weakest skills surface automatically right after greeting.
+  if (reviewLabels.length > 0) {
+    const what = reviewLabels.length === 1 ? reviewLabels[0] : `${reviewLabels[0]} and ${reviewLabels[1]}`;
+    turns.push({
+      phase: 'review',
+      say: `Before we start — last time we practiced ${what}. Can you tell me one thing you remember?`,
+      ask: 'What do you remember?',
+      chips: ['I remember!', 'Say it again', 'Show me'],
+      waitForChild: true,
+    });
+  }
 
   const teachBlocks = lesson.blocks.filter((b) => b.kind === 'teach' || b.kind === 'story');
   const blocks: LessonBlock[] = teachBlocks.length ? teachBlocks : lesson.blocks.slice(0, 2);

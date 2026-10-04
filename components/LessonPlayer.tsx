@@ -145,9 +145,11 @@ export function LessonPlayer({ lesson, childName, onBack }: Props) {
   useEffect(() => () => { stopVoice(); }, []);
 
   const onExerciseComplete = (exerciseId: string) => {
+    const doneExercise = exercises.find((e) => e.id === exerciseId);
     markExerciseDone(lesson.id, exerciseId, {
       lessonTitle: lesson.title,
       detail: `${childName} cleared exercise ${exerciseId} in “${lesson.title}”`,
+      skillId: doneExercise?.skillId,
     });
     const nextDone = [...doneIds, exerciseId];
     if (exercises.every((e) => nextDone.includes(e.id))) {

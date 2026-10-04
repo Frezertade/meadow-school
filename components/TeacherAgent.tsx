@@ -25,7 +25,9 @@ import {
   difficultyLabel,
   exerciseDifficulty,
   orderedExercises,
+  skillLabel,
   unlockedDifficulty,
+  weakestSkills,
 } from '@/lib/progress';
 import { useAppStore } from '@/lib/store';
 import { colors, fonts, radii, space } from '@/lib/theme';
@@ -59,7 +61,6 @@ interface Props {
  * Not a top-to-bottom text reader.
  */
 export function TeacherAgent({ lesson, childName, onBack }: Props) {
-  const plan = useMemo(() => buildTeachPlan(lesson, childName), [lesson, childName]);
   const [turnIndex, setTurnIndex] = useState(0);
   const [busyListen, setBusyListen] = useState(false);
   const [lastHeard, setLastHeard] = useState('');
@@ -83,6 +84,13 @@ export function TeacherAgent({ lesson, childName, onBack }: Props) {
   const clearActiveLesson = useAppStore((s) => s.clearActiveLesson);
   const completed = useAppStore((s) => s.completed);
   const childId = useAppStore((s) => s.activeChildId);
+  const mastery = useAppStore((s) => s.mastery ?? {});
+
+  // Spaced review: weakest non-solid skills resurface right after greeting.
+  const plan = useMemo(() => {
+    const weak = childId ? weakestSkills(lesson, childId, mastery, 2) : [];
+    return buildTeachPlan(lesson, childName, weak.map(skillLabel));
+  }, [lesson, childName, childId, mastery]);
 
   const turn: TeachTurn | undefined = plan[turnIndex];
   const band = getBand(lesson.ageBand);
@@ -238,9 +246,11 @@ export function TeacherAgent({ lesson, childName, onBack }: Props) {
   };
 
   const onExerciseComplete = (exerciseId: string) => {
+    const doneExercise = exercises.find((e) => e.id === exerciseId);
     markExerciseDone(lesson.id, exerciseId, {
       lessonTitle: lesson.title,
       detail: `${childName} cleared ${exerciseId}`,
+      skillId: doneExercise?.skillId,
     });
     const nextDone = [...doneIds, exerciseId];
     if (exercises.every((e) => nextDone.includes(e.id))) {

@@ -10,9 +10,10 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { curriculumBands } from '@/content';
+import { curriculumBands, getBand } from '@/content';
 import { PA_ELEMENTARY_SUBJECTS, PA_NOTES } from '@/content/pa-alignment';
 import type { AgeBand } from '@/content/schema';
+import { lessonSkills, skillLabel, skillLevel } from '@/lib/progress';
 import { colors, fonts, radii, space } from '@/lib/theme';
 import { useAppStore } from '@/lib/store';
 import type { MeadowVoiceChoice } from '@/lib/voice/meadowVoice';
@@ -54,6 +55,7 @@ export default function ParentScreen() {
   const verifyPin = useAppStore((s) => s.verifyPin);
   const hasPin = useAppStore((s) => s.hasPin);
   const ensurePin = useAppStore((s) => s.ensurePin);
+  const mastery = useAppStore((s) => s.mastery ?? {});
 
   useEffect(() => {
     hasPin().then((exists) => setNeedsSetup(!exists));
@@ -255,6 +257,22 @@ export default function ParentScreen() {
             Progress keys stored:{' '}
             {Object.keys(completed).filter((k) => k.startsWith(c.id)).length} lesson records
           </Text>
+          <Text style={styles.cardLabel}>Skills (🟢 solid · 🟡 practicing · ⚪ new)</Text>
+          {[...new Set(getBand(c.ageBand).lessons.flatMap((l) => lessonSkills(l)))].map((skillId) => {
+            const snap = mastery[`${c.id}:${skillId}`];
+            const level = skillLevel(snap?.seen ?? 0);
+            return (
+              <View key={skillId} style={styles.skillRow}>
+                <Text style={styles.skillDot}>
+                  {level === 'solid' ? '🟢' : level === 'practicing' ? '🟡' : '⚪'}
+                </Text>
+                <Text style={styles.skillText}>{skillLabel(skillId)}</Text>
+                <Text style={styles.progress}>
+                  {snap ? `${snap.seen}×` : ''}
+                </Text>
+              </View>
+            );
+          })}
         </View>
       ))}
 
@@ -354,6 +372,9 @@ const styles = StyleSheet.create({
   bandChipText: { fontFamily: fonts.bodyBold, color: colors.ink, fontSize: 13 },
   bandChipTextOn: { color: colors.white },
   progress: { fontFamily: fonts.body, fontSize: 13, color: colors.inkSoft },
+  skillRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 2 },
+  skillDot: { fontSize: 14 },
+  skillText: { fontFamily: fonts.body, fontSize: 14, color: colors.ink, flex: 1 },
   body: { fontFamily: fonts.body, fontSize: 15, color: colors.inkSoft, lineHeight: 22 },
   bullet: { fontFamily: fonts.body, fontSize: 14, color: colors.ink, lineHeight: 22 },
   logRow: {
