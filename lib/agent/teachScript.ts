@@ -154,6 +154,12 @@ function introduceExercise(ex: Exercise, name: string): string {
   if (ex.kind === 'math') {
     return `${name}, math challenge: ${ex.instruction} Take your time.`;
   }
+  if (ex.kind === 'sequence') {
+    return `${name}, ordering challenge: ${ex.instruction} Tap each step in order.`;
+  }
+  if (ex.kind === 'listen-say') {
+    return `${name}, listening challenge: ${ex.instruction} Hear it, then say it back.`;
+  }
   return `${name}, drawing time: ${ex.instruction} There is no wrong art.`;
 }
 

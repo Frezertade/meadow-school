@@ -49,6 +49,21 @@ export function narrateExercise(exercise: Exercise, childName: string): string[]
       'Tap your answer.',
     ];
   }
+  if (exercise.kind === 'sequence') {
+    return [
+      `${childName}, ordering ${tier}.`,
+      exercise.instruction,
+      exercise.prompt,
+      'Tap the steps in order, first to last.',
+    ];
+  }
+  if (exercise.kind === 'listen-say') {
+    return [
+      `${childName}, listening ${tier}.`,
+      exercise.instruction,
+      `Listen for: ${exercise.phrase}. Then say it back into the microphone.`,
+    ];
+  }
   return [
     `${childName}, drawing ${tier}.`,
     exercise.instruction,

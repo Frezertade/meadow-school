@@ -12,8 +12,12 @@ import type { Lesson } from '../schema';
  * 5. Blocks: one small bite each. Every `teach`/`story` block needs `tutorCue` —
  *    a stage direction for Meadow's voice, gestures, and pacing (NOT a summary).
  * 6. Exercises: at least one difficulty-1 warm-up; climb 1 → 2 → 3.
+ *    Every exercise needs a `skillId` slug from content/scope.md.
  *    reading/math: `answer` MUST appear in `choices`; always write `hint`.
  *    drawing: always write `successMessage`.
+ *    listen-say: `phrase` + `hint`; `accept` defaults to the phrase words.
+ *    sequence: `items` shuffled at runtime; `answer` lists every item once.
+ *    Kinds with UI renderers: reading, math, drawing, listen-say, sequence.
  * 7. PA: `statuteSubjects` must include every bucket mapped from your `subject`
  *    (see SUBJECT_TO_PA in content/pa-alignment.ts); add ≥1 `standardsTags` skill.
  * 8. Keep `minutes` ≤ 15 (5–8 ideal). Longer? Split into two lessons.
@@ -65,6 +69,7 @@ Do NOT teach: <out-of-scope topics for this lesson>.
     {
       kind: 'reading',
       id: 'r1',
+      skillId: 'example-skill',
       difficulty: 1,
       instruction: 'Warm-up: <what to do>',
       prompt: '<the question>',
@@ -75,6 +80,7 @@ Do NOT teach: <out-of-scope topics for this lesson>.
     {
       kind: 'math',
       id: 'm1',
+      skillId: 'example-skill',
       difficulty: 2,
       instruction: 'Stretch: <what to do>',
       visual: '🍎🍎🍎',
@@ -86,10 +92,32 @@ Do NOT teach: <out-of-scope topics for this lesson>.
     {
       kind: 'drawing',
       id: 'd1',
+      skillId: 'example-skill',
       difficulty: 3,
       instruction: 'Strong: <what to do>',
       prompt: '<the invitation>',
       successMessage: 'Celebrate the specific effort.',
+    },
+    {
+      kind: 'listen-say',
+      id: 's1',
+      skillId: 'example-skill',
+      difficulty: 1,
+      instruction: 'Warm-up: Hear it, then say it',
+      phrase: 'sun',
+      accept: ['sun'],
+      hint: 'Starts with /s/, like a snake.',
+    },
+    {
+      kind: 'sequence',
+      id: 'q1',
+      skillId: 'example-skill',
+      difficulty: 2,
+      instruction: 'Stretch: Put the steps in order',
+      prompt: 'What happens first, next, last?',
+      items: ['Last: brush teeth', 'First: wake up', 'Next: eat breakfast'],
+      answer: ['First: wake up', 'Next: eat breakfast', 'Last: brush teeth'],
+      hint: 'Mornings start with waking up.',
     },
   ],
 };

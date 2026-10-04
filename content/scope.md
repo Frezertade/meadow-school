@@ -179,7 +179,7 @@ Linear chains: each new lesson takes the next `pathOrder` and `requiresLessonId`
 ★ `ages-5` renumber: `a5-cvc-cat` becomes order 2 (requires `a5-letter-sounds`),
 `a5-math-10` order 4 (requires `a5-cvc-dog`), `a5-pa-flag` order 7 (requires `a5-patterns`).
 
-Result: 10 lessons per band, 30 total. Every ⬜ outcome above is covered.
+Result: 10 + 10 + 11 lessons per band, 31 total. Every ⬜ outcome above is covered.
 
 ---
 

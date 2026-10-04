@@ -60,10 +60,9 @@ for (const band of bands) {
       err(L, `unknown subject "${lesson.subject}"`);
     } else {
       const expected = SUBJECT_TO_PA[lesson.subject] ?? [];
-      for (const s of expected) {
-        if (!lesson.pa?.statuteSubjects?.includes(s)) {
-          err(L, `pa.statuteSubjects missing "${s}" required for subject "${lesson.subject}"`);
-        }
+      const hasOne = expected.some((s) => lesson.pa?.statuteSubjects?.includes(s));
+      if (expected.length > 0 && !hasOne) {
+        err(L, `pa.statuteSubjects must include at least one of [${expected.join('; ')}] for subject "${lesson.subject}"`);
       }
     }
     if (!lesson.pa || !Array.isArray(lesson.pa.statuteSubjects) || lesson.pa.statuteSubjects.length === 0) {
@@ -129,6 +128,11 @@ for (const band of bands) {
         if (!ex.id) { err(L, 'exercise missing id'); continue; }
         if (exIds.has(ex.id)) err(X, 'duplicate exercise id within lesson');
         exIds.add(ex.id);
+        if (!ex.skillId?.trim()) {
+          err(X, 'missing skillId — every exercise must declare the scope.md skill it practices');
+        } else if (!/^[a-z0-9-]+$/.test(ex.skillId)) {
+          err(X, `skillId "${ex.skillId}" must be a lowercase slug (letters, digits, hyphens)`);
+        }
         if (!RENDERED_EXERCISE_KINDS.has(ex.kind)) {
           err(X, `kind "${ex.kind}" has no UI renderer (TeacherAgent/LessonPlayer only render reading, math, drawing)`);
           continue;
@@ -137,13 +141,37 @@ for (const band of bands) {
         if (![1, 2, 3].includes(d)) err(X, `difficulty must be 1–3 (got ${ex.difficulty})`);
         difficulties.add(d);
         if (!ex.instruction?.trim()) err(X, 'missing instruction');
-        if (!ex.prompt?.trim()) err(X, 'missing prompt');
+        if (ex.kind !== 'listen-say' && !ex.prompt?.trim()) err(X, 'missing prompt');
         if (ex.kind === 'reading' || ex.kind === 'math') {
           if (!Array.isArray(ex.choices) || ex.choices.length < 2) err(X, 'needs ≥2 choices');
           if (!ex.choices?.includes(ex.answer)) err(X, 'answer must be one of choices');
           if (!ex.hint?.trim()) err(X, 'missing hint');
         }
         if (ex.kind === 'drawing' && !ex.successMessage?.trim()) err(X, 'missing successMessage');
+        if (ex.kind === 'listen-say') {
+          if (!ex.phrase?.trim()) err(X, 'missing phrase to repeat');
+          if (ex.accept !== undefined && (!Array.isArray(ex.accept) || ex.accept.length === 0)) {
+            err(X, 'accept must be a non-empty array when provided');
+          }
+          if (!ex.hint?.trim()) err(X, 'missing hint');
+        }
+        if (ex.kind === 'sequence') {
+          if (!Array.isArray(ex.items) || ex.items.length < 2) err(X, 'sequence needs ≥2 items');
+          else if (new Set(ex.items).size !== ex.items.length) {
+            warn(X, 'sequence items contain duplicates — keep labels distinct (e.g. "First: red")');
+          }
+          if (!Array.isArray(ex.answer) || ex.answer.length !== ex.items?.length) {
+            err(X, 'sequence answer must list every item exactly once, in the right order');
+          } else {
+            const sorted = (a) => [...a].sort().join('|');
+            if (sorted(ex.answer) !== sorted(ex.items)) {
+              err(X, 'sequence answer must be the same multiset as items');
+            } else if (ex.answer.join('|') === ex.items.join('|')) {
+              warn(X, 'sequence answer is already in items order — shuffle items so the child must think');
+            }
+          }
+          if (!ex.hint?.trim()) err(X, 'missing hint');
+        }
       }
       if (!difficulties.has(1)) err(L, 'no difficulty-1 warm-up exercise — every lesson must start gentle');
     }

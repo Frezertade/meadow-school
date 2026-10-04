@@ -11,6 +11,8 @@ import { getBand } from '@/content';
 import { DrawingCanvas } from '@/components/exercises/DrawingCanvas';
 import { MathExercise } from '@/components/exercises/MathExercise';
 import { ReadingExercise } from '@/components/exercises/ReadingExercise';
+import { SequenceExercise } from '@/components/exercises/SequenceExercise';
+import { ListenSayExercise } from '@/components/exercises/ListenSayExercise';
 import {
   askMeadow,
 } from '@/lib/agent/tutor';
@@ -390,6 +392,20 @@ export function TeacherAgent({ lesson, childName, onBack }: Props) {
                   instruction={currentExercise.instruction}
                   prompt={currentExercise.prompt}
                   successMessage={currentExercise.successMessage}
+                  onComplete={() => onExerciseComplete(currentExercise.id)}
+                />
+              )}
+              {currentExercise.kind === 'sequence' && (
+                <SequenceExercise
+                  exercise={currentExercise}
+                  childName={childName}
+                  onComplete={() => onExerciseComplete(currentExercise.id)}
+                />
+              )}
+              {currentExercise.kind === 'listen-say' && (
+                <ListenSayExercise
+                  exercise={currentExercise}
+                  childName={childName}
                   onComplete={() => onExerciseComplete(currentExercise.id)}
                 />
               )}

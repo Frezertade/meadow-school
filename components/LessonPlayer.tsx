@@ -4,6 +4,8 @@ import type { Lesson } from '@/content/schema';
 import { DrawingCanvas } from '@/components/exercises/DrawingCanvas';
 import { MathExercise } from '@/components/exercises/MathExercise';
 import { ReadingExercise } from '@/components/exercises/ReadingExercise';
+import { SequenceExercise } from '@/components/exercises/SequenceExercise';
+import { ListenSayExercise } from '@/components/exercises/ListenSayExercise';
 import { TutorFab, TutorSheet } from '@/components/Tutor';
 import { VoiceBar } from '@/components/VoiceBar';
 import {
@@ -271,6 +273,20 @@ export function LessonPlayer({ lesson, childName, onBack }: Props) {
                 instruction={currentEx.instruction}
                 prompt={currentEx.prompt}
                 successMessage={currentEx.successMessage}
+                onComplete={() => onExerciseComplete(currentEx.id)}
+              />
+            )}
+            {currentEx.kind === 'sequence' && (
+              <SequenceExercise
+                exercise={currentEx}
+                childName={childName}
+                onComplete={() => onExerciseComplete(currentEx.id)}
+              />
+            )}
+            {currentEx.kind === 'listen-say' && (
+              <ListenSayExercise
+                exercise={currentEx}
+                childName={childName}
                 onComplete={() => onExerciseComplete(currentEx.id)}
               />
             )}

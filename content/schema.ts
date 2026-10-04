@@ -16,7 +16,7 @@ export type SubjectId =
   | 'music'
   | 'safety';
 
-export type ExerciseKind = 'reading' | 'math' | 'drawing' | 'listen-say';
+export type ExerciseKind = 'reading' | 'math' | 'drawing' | 'listen-say' | 'sequence';
 
 /** 1 = warm-up, 2 = stretch, 3 = strong challenge */
 export type Difficulty = 1 | 2 | 3;
@@ -39,6 +39,8 @@ export interface LessonBlock {
 
 interface ExerciseBase {
   id: string;
+  /** Stable skill slug from content/scope.md — drives mastery + parent grid */
+  skillId: string;
   /** Incremental difficulty within the lesson (default 1) */
   difficulty?: Difficulty;
 }
@@ -69,7 +71,33 @@ export interface DrawingExercise extends ExerciseBase {
   successMessage: string;
 }
 
-export type Exercise = ReadingExercise | MathExercise | DrawingExercise;
+export interface ListenSayExercise extends ExerciseBase {
+  kind: 'listen-say';
+  instruction: string;
+  /** Word/phrase Meadow says and the child repeats back */
+  phrase: string;
+  /** Accepted transcript words (lowercase). Defaults to the phrase's words. */
+  accept?: string[];
+  hint: string;
+}
+
+export interface SequenceExercise extends ExerciseBase {
+  kind: 'sequence';
+  instruction: string;
+  prompt: string;
+  /** Steps to arrange (presented shuffled) */
+  items: string[];
+  /** Correct order — same multiset as items */
+  answer: string[];
+  hint: string;
+}
+
+export type Exercise =
+  | ReadingExercise
+  | MathExercise
+  | DrawingExercise
+  | ListenSayExercise
+  | SequenceExercise;
 
 export interface Lesson {
   id: string;

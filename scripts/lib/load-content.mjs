@@ -17,7 +17,7 @@ const { transpileModule } = require('typescript');
 const REPO_ROOT = join(new URL('.', import.meta.url).pathname, '..', '..');
 const BANDS_DIR = join(REPO_ROOT, 'content', 'bands');
 
-export const RENDERED_EXERCISE_KINDS = new Set(['reading', 'math', 'drawing']);
+export const RENDERED_EXERCISE_KINDS = new Set(['reading', 'math', 'drawing', 'listen-say', 'sequence']);
 
 export async function loadBands() {
   const tmp = mkdtempSync(join(tmpdir(), 'meadow-content-'));
