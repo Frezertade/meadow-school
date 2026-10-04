@@ -18,12 +18,13 @@ export type SubjectId =
 
 export type ExerciseKind = 'reading' | 'math' | 'drawing' | 'listen-say';
 
+/** 1 = warm-up, 2 = stretch, 3 = strong challenge */
+export type Difficulty = 1 | 2 | 3;
+
 export type PaLevel = 'prek' | 'elementary-K6';
 
 export interface PaAlignment {
-  /** PA home-ed subject bucket from 24 P.S. § 13-1327.1(c)(1) when applicable */
   statuteSubjects: string[];
-  /** Optional Chapter 4 / ELDS style tags for planning */
   standardsTags: string[];
   level: PaLevel;
 }
@@ -33,26 +34,27 @@ export interface LessonBlock {
   kind: 'story' | 'teach' | 'prompt' | 'celebrate';
   title?: string;
   text: string;
-  /** Short spoken-friendly line for the tutor to echo */
   tutorCue?: string;
 }
 
-export interface ReadingExercise {
-  kind: 'reading';
+interface ExerciseBase {
   id: string;
+  /** Incremental difficulty within the lesson (default 1) */
+  difficulty?: Difficulty;
+}
+
+export interface ReadingExercise extends ExerciseBase {
+  kind: 'reading';
   instruction: string;
-  /** Words or letters to identify */
   prompt: string;
   choices: string[];
   answer: string;
   hint: string;
 }
 
-export interface MathExercise {
+export interface MathExercise extends ExerciseBase {
   kind: 'math';
-  id: string;
   instruction: string;
-  /** Visual count objects, e.g. "🍎🍎🍎" */
   visual?: string;
   prompt: string;
   choices: string[];
@@ -60,11 +62,9 @@ export interface MathExercise {
   hint: string;
 }
 
-export interface DrawingExercise {
+export interface DrawingExercise extends ExerciseBase {
   kind: 'drawing';
-  id: string;
   instruction: string;
-  /** What to draw — kept concrete and age-safe */
   prompt: string;
   successMessage: string;
 }
@@ -78,11 +78,14 @@ export interface Lesson {
   title: string;
   minutes: number;
   summary: string;
-  /** Full text the tutor may use — ONLY this + exercises for grounding */
   groundingText: string;
   pa: PaAlignment;
   blocks: LessonBlock[];
   exercises: Exercise[];
+  /** Order in the age-band learning path (1 = first) */
+  pathOrder?: number;
+  /** Must finish this lesson before unlocking (same band) */
+  requiresLessonId?: string;
 }
 
 export interface CurriculumBand {

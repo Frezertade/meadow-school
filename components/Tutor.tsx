@@ -16,6 +16,8 @@ import type { Lesson } from '@/content/schema';
 import { askMeadow, type TutorMessage } from '@/lib/agent/tutor';
 import { colors, fonts, radii, space } from '@/lib/theme';
 import { getBand } from '@/content';
+import { useAppStore } from '@/lib/store';
+import { meadowSpeak, stopVoice, unlockVoice } from '@/lib/voice/meadowVoice';
 
 interface Props {
   lesson: Lesson;
@@ -30,21 +32,22 @@ export function TutorSheet({ lesson, childName, visible, onClose }: Props) {
   const [busy, setBusy] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
   const band = getBand(lesson.ageBand);
+  const voiceEnabled = useAppStore((s) => s.voiceEnabled);
 
   useEffect(() => {
     if (visible && messages.length === 0) {
-      setMessages([
-        {
-          role: 'meadow',
-          text: `Hi ${childName}! I'm Meadow. I only help with “${lesson.title}”. Ask me for a hint, a sound, a number, or drawing help.`,
-        },
-      ]);
+      const hello = `Hi ${childName}! I'm Meadow. I only help with “${lesson.title}”. Ask me for a hint, a sound, a number, or drawing help.`;
+      setMessages([{ role: 'meadow', text: hello }]);
+      unlockVoice();
+      if (voiceEnabled) meadowSpeak(hello, { enabled: true });
     }
+    if (!visible) stopVoice();
   }, [visible, lesson.id]);
 
   const send = async (text?: string) => {
     const q = (text ?? input).trim();
     if (!q || busy) return;
+    unlockVoice();
     setInput('');
     setMessages((m) => [...m, { role: 'child', text: q }]);
     setBusy(true);
@@ -55,6 +58,7 @@ export function TutorSheet({ lesson, childName, visible, onClose }: Props) {
     });
     setMessages((m) => [...m, { role: 'meadow', text: reply }]);
     setBusy(false);
+    if (voiceEnabled) await meadowSpeak(reply, { enabled: true });
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 50);
   };
 

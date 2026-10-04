@@ -9,6 +9,8 @@ import {
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { colors, fonts, radii, space } from '@/lib/theme';
+import { useAppStore } from '@/lib/store';
+import { meadowSpeak, unlockVoice } from '@/lib/voice/meadowVoice';
 
 type Point = { x: number; y: number };
 
@@ -32,6 +34,7 @@ export function DrawingCanvas({ prompt, instruction, onComplete, successMessage 
   const [size, setSize] = useState({ w: 300, h: 280 });
   const [done, setDone] = useState(false);
   const currentRef = useRef<Point[]>([]);
+  const voiceEnabled = useAppStore((s) => s.voiceEnabled);
 
   const onLayout = (e: LayoutChangeEvent) => {
     const { width, height } = e.nativeEvent.layout;
@@ -73,16 +76,26 @@ export function DrawingCanvas({ prompt, instruction, onComplete, successMessage 
   };
 
   const markDone = () => {
+    unlockVoice();
     setDone(true);
     onComplete();
+    if (voiceEnabled) meadowSpeak(successMessage, { enabled: true });
   };
 
   const hasInk = strokes.length > 0 || current.length > 1;
 
   return (
     <View style={styles.wrap}>
-      <Text style={styles.instruction}>{instruction}</Text>
-      <Text style={styles.prompt}>{prompt}</Text>
+      <Pressable
+        onPress={() => {
+          unlockVoice();
+          if (voiceEnabled) meadowSpeak(`${instruction}. ${prompt}`, { enabled: true });
+        }}
+      >
+        <Text style={styles.instruction}>{instruction}</Text>
+        <Text style={styles.prompt}>{prompt}</Text>
+        <Text style={styles.tapHint}>Tap to hear Meadow</Text>
+      </Pressable>
       <View style={styles.canvas} onLayout={onLayout} {...pan.panHandlers}>
         <Svg width={size.w} height={size.h}>
           {strokes.map((stroke, i) => (
@@ -142,6 +155,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.inkSoft,
     lineHeight: 24,
+  },
+  tapHint: {
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: colors.inkSoft,
+    marginBottom: space.xs,
   },
   canvas: {
     height: 280,

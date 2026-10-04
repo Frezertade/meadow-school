@@ -1,10 +1,24 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { Link, router } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { curriculumBands, getBand } from '@/content';
+import { VoiceBar } from '@/components/VoiceBar';
+import {
+  isLessonUnlocked,
+  sortedPathLessons,
+  unlockedDifficulty,
+} from '@/lib/progress';
 import { colors, fonts, radii, space } from '@/lib/theme';
 import { useActiveChild, useAppStore } from '@/lib/store';
+import {
+  isVoiceUnlocked,
+  meadowSpeakSequence,
+  unlockAndSpeakNow,
+  unlockVoice,
+} from '@/lib/voice/meadowVoice';
+import { narrateHome } from '@/lib/voice/scripts';
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -12,7 +26,40 @@ export default function HomeScreen() {
   const children = useAppStore((s) => s.children);
   const setActiveChild = useAppStore((s) => s.setActiveChild);
   const completed = useAppStore((s) => s.completed);
+  const voiceEnabled = useAppStore((s) => s.voiceEnabled);
+  const setVoiceEnabled = useAppStore((s) => s.setVoiceEnabled);
+  const activeLearning = useAppStore((s) => s.activeLearning);
   const band = getBand(child.ageBand);
+  const pathLessons = sortedPathLessons(band.lessons);
+  const greeted = useRef<string | null>(null);
+  const [voiceReady, setVoiceReady] = useState(isVoiceUnlocked());
+
+  const speakWelcome = () => {
+    if (!voiceEnabled) setVoiceEnabled(true);
+    unlockVoice();
+    setVoiceReady(true);
+    // Immediate speak in case this was called from a tap
+    unlockAndSpeakNow(`Hi ${child.name}! I'm Meadow.`);
+    setTimeout(() => {
+      meadowSpeakSequence(narrateHome(child.name, band.label), {
+        enabled: true,
+        gapMs: 250,
+      });
+    }, 80);
+  };
+
+  useEffect(() => {
+    // Do not auto-speak on web without a tap — browsers block it
+    if (!voiceEnabled) return;
+    if (!isVoiceUnlocked()) return;
+    if (greeted.current === child.id) return;
+    greeted.current = child.id;
+    // Only auto-continue if already unlocked from a prior tap
+    meadowSpeakSequence(narrateHome(child.name, band.label), {
+      enabled: true,
+      gapMs: 250,
+    });
+  }, [child.id, voiceEnabled]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>
@@ -32,14 +79,38 @@ export default function HomeScreen() {
 
         <Text style={styles.hello}>Hello, {child.name}</Text>
         <Text style={styles.lede}>
-          Lessons that feel like a storybook — with Meadow beside you whenever you need help.
+          Meadow is your teacher — talk with buttons or the mic. Grown-ups check the log later.
         </Text>
+
+        <VoiceBar
+          onHearAgain={() => {
+            meadowSpeakSequence(narrateHome(child.name, band.label), {
+              enabled: true,
+              gapMs: 250,
+            });
+          }}
+          label="Hear welcome"
+          immediateLine={`Hi ${child.name}! I'm Meadow, your learning guide.`}
+        />
+
+        {!voiceReady && (
+          <Pressable style={styles.unlock} onPress={speakWelcome}>
+            <Text style={styles.unlockTitle}>Tap here to hear Meadow</Text>
+            <Text style={styles.unlockBody}>
+              Sound needs one tap to start. After this, Meadow will talk on every page.
+            </Text>
+          </Pressable>
+        )}
 
         <View style={styles.switcher}>
           {children.map((c) => (
             <Pressable
               key={c.id}
-              onPress={() => setActiveChild(c.id)}
+              onPress={() => {
+                unlockVoice();
+                setActiveChild(c.id);
+                greeted.current = null;
+              }}
               style={[styles.childChip, c.id === child.id && styles.childChipOn]}
             >
               <Text
@@ -51,32 +122,60 @@ export default function HomeScreen() {
           ))}
         </View>
 
+        <View style={styles.nowCard}>
+          <Text style={styles.nowLabel}>Learning now</Text>
+          <Text style={styles.nowName}>
+            {activeLearning?.childName || child.name}
+            {activeLearning?.lessonTitle
+              ? ` · ${activeLearning.lessonTitle}`
+              : ' · choosing a lesson'}
+          </Text>
+        </View>
+
         <View style={styles.bandCard}>
           <Text style={styles.bandLabel}>{band.ageRange}</Text>
           <Text style={styles.bandTitle}>{band.label}</Text>
           <Text style={styles.bandDesc}>{band.description}</Text>
         </View>
 
-        <Text style={styles.section}>Today’s path</Text>
-        {band.lessons.map((lesson) => {
+        <Text style={styles.section}>Today’s path (easy → stronger)</Text>
+        {pathLessons.map((lesson) => {
           const key = `${child.id}:${lesson.id}`;
-          const doneCount = (completed[key] || []).length;
+          const doneIds = completed[key] || [];
           const total = lesson.exercises.length;
-          const done = total > 0 && doneCount >= total;
+          const done = total > 0 && doneIds.length >= total;
+          const unlocked = isLessonUnlocked(lesson, band.lessons, completed, child.id);
+          const level = unlockedDifficulty(lesson, doneIds);
           return (
             <Pressable
               key={lesson.id}
-              style={styles.lessonCard}
-              onPress={() => router.push(`/lesson/${lesson.id}`)}
+              style={[styles.lessonCard, !unlocked && styles.lessonLocked]}
+              onPress={() => {
+                if (!unlocked) return;
+                unlockVoice();
+                router.push(`/lesson/${lesson.id}`);
+              }}
             >
               <View style={styles.lessonTop}>
-                <Text style={styles.lessonSubject}>{lesson.subject}</Text>
-                {done && <Text style={styles.done}>Done</Text>}
+                <Text style={styles.lessonSubject}>
+                  Step {lesson.pathOrder ?? '—'} · {lesson.subject}
+                </Text>
+                {done ? (
+                  <Text style={styles.done}>Done</Text>
+                ) : !unlocked ? (
+                  <Text style={styles.locked}>Locked</Text>
+                ) : (
+                  <Text style={styles.level}>Lv {level}/3</Text>
+                )}
               </View>
               <Text style={styles.lessonTitle}>{lesson.title}</Text>
-              <Text style={styles.lessonSummary}>{lesson.summary}</Text>
+              <Text style={styles.lessonSummary}>
+                {!unlocked
+                  ? 'Finish the previous lesson to unlock this stronger step.'
+                  : lesson.summary}
+              </Text>
               <Text style={styles.lessonMeta}>
-                {lesson.minutes} min · {lesson.exercises.length} activities
+                {lesson.minutes} min · {total} challenges · warm-up → stretch → strong
               </Text>
             </Pressable>
           );
@@ -129,6 +228,15 @@ const styles = StyleSheet.create({
     lineHeight: 26,
     marginBottom: space.sm,
   },
+  unlock: {
+    backgroundColor: colors.meadow,
+    borderRadius: radii.lg,
+    padding: space.lg,
+    gap: 6,
+    marginBottom: space.sm,
+  },
+  unlockTitle: { fontFamily: fonts.display, fontSize: 20, color: colors.white },
+  unlockBody: { fontFamily: fonts.body, fontSize: 14, color: colors.white, lineHeight: 20 },
   switcher: { flexDirection: 'row', gap: 8, marginBottom: space.sm },
   childChip: {
     paddingHorizontal: 14,
@@ -139,6 +247,19 @@ const styles = StyleSheet.create({
   childChipOn: { backgroundColor: colors.meadow },
   childChipText: { fontFamily: fonts.bodyBold, color: colors.ink },
   childChipTextOn: { color: colors.white },
+  nowCard: {
+    backgroundColor: colors.ink,
+    borderRadius: radii.md,
+    padding: space.md,
+    marginBottom: space.sm,
+  },
+  nowLabel: {
+    fontFamily: fonts.bodyBold,
+    fontSize: 11,
+    color: colors.honey,
+    letterSpacing: 1,
+  },
+  nowName: { fontFamily: fonts.displaySoft, fontSize: 20, color: colors.white, marginTop: 4 },
   bandCard: {
     backgroundColor: colors.white,
     borderRadius: radii.lg,
@@ -170,6 +291,7 @@ const styles = StyleSheet.create({
     borderColor: colors.paperDeep,
     gap: 4,
   },
+  lessonLocked: { opacity: 0.55 },
   lessonTop: { flexDirection: 'row', justifyContent: 'space-between' },
   lessonSubject: {
     fontFamily: fonts.bodyBold,
@@ -179,6 +301,8 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   done: { fontFamily: fonts.bodyBold, fontSize: 12, color: colors.success },
+  locked: { fontFamily: fonts.bodyBold, fontSize: 12, color: colors.danger },
+  level: { fontFamily: fonts.bodyBold, fontSize: 12, color: colors.honey },
   lessonTitle: { fontFamily: fonts.displaySoft, fontSize: 22, color: colors.ink },
   lessonSummary: { fontFamily: fonts.body, fontSize: 15, color: colors.inkSoft, lineHeight: 22 },
   lessonMeta: { fontFamily: fonts.body, fontSize: 13, color: colors.inkSoft, marginTop: 4 },

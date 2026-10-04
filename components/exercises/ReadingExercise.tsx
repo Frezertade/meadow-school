@@ -2,32 +2,54 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { ReadingExercise as ReadingExerciseType } from '@/content/schema';
 import { colors, fonts, radii, space } from '@/lib/theme';
+import { useAppStore } from '@/lib/store';
+import { meadowSpeak, unlockVoice } from '@/lib/voice/meadowVoice';
+import { narrateCorrect, narrateWrong } from '@/lib/voice/scripts';
 
 interface Props {
   exercise: ReadingExerciseType;
+  childName: string;
   onComplete: () => void;
 }
 
-export function ReadingExercise({ exercise, onComplete }: Props) {
+export function ReadingExercise({ exercise, childName, onComplete }: Props) {
   const [selected, setSelected] = useState<string | null>(null);
   const [status, setStatus] = useState<'idle' | 'correct' | 'wrong'>('idle');
+  const voiceEnabled = useAppStore((s) => s.voiceEnabled);
 
-  const choose = (choice: string) => {
+  const choose = async (choice: string) => {
+    unlockVoice();
     setSelected(choice);
+    // Speak the tapped choice (letter / word)
+    if (voiceEnabled) {
+      await meadowSpeak(choice.length === 1 ? `You chose letter ${choice}` : `You chose ${choice}`, {
+        enabled: true,
+        rate: 0.9,
+      });
+    }
     if (choice === exercise.answer) {
       setStatus('correct');
       onComplete();
+      if (voiceEnabled) await meadowSpeak(narrateCorrect(childName), { enabled: true });
     } else {
       setStatus('wrong');
+      if (voiceEnabled) await meadowSpeak(narrateWrong(exercise.hint), { enabled: true });
     }
   };
 
   return (
     <View style={styles.wrap}>
       <Text style={styles.instruction}>{exercise.instruction}</Text>
-      <View style={styles.promptCard}>
+      <Pressable
+        style={styles.promptCard}
+        onPress={() => {
+          unlockVoice();
+          if (voiceEnabled) meadowSpeak(`${exercise.instruction}. ${exercise.prompt}`, { enabled: true });
+        }}
+      >
         <Text style={styles.prompt}>{exercise.prompt}</Text>
-      </View>
+        <Text style={styles.tapHint}>Tap to hear the question</Text>
+      </Pressable>
       <View style={styles.choices}>
         {exercise.choices.map((choice) => {
           const isSel = selected === choice;
@@ -71,6 +93,13 @@ const styles = StyleSheet.create({
     fontSize: 26,
     color: colors.ink,
     textAlign: 'center',
+  },
+  tapHint: {
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: colors.inkSoft,
+    textAlign: 'center',
+    marginTop: 6,
   },
   choices: { gap: space.sm },
   choice: {

@@ -6,17 +6,18 @@ globs:
 
 # Meadow School
 
-Private family PA home-ed app (Expo web + iOS). Learners ages 3–7. Read root `AGENTS.md` before large changes.
+Private family PA home-ed app (Expo web + iOS). Learners ages 3–7. Read root `AGENTS.md`.
 
 ## Must follow
 
-- Keep Meadow tutor FAB on every lesson screen; answers grounded only in lesson `groundingText` + exercises.
-- New lessons go in `content/bands/*.ts` with PA tags from `content/pa-alignment.ts`.
-- Use `lib/theme.ts` (Storybook Meadow). No purple gradients; no cream+terracotta cliché; no Inter/Roboto defaults.
-- Child surfaces: large tap targets, short copy, reading/math/drawing exercises.
-- Parent changes behind PIN (`app/parent`).
+- Meadow is a **conversational teacher agent** (`TeacherAgent` + `teachScript`), not a page reader.
+- Keep answers grounded in lesson `groundingText` + exercises.
+- Voice out via `lib/voice/meadowVoice.ts` + Supertonic on web (`lib/voice/supertonic.web.ts`, F2 default); mic via `lib/voice/listen.ts` when available.
+- Lessons in `content/bands/*.ts` with PA tags; exercises use difficulty 1→2→3.
+- Theme: `lib/theme.ts` (Storybook Meadow). No purple gradients; no cream+terracotta; no Inter defaults.
+- Parent PIN; optional OpenAI key only via parent desk / SecureStore.
 
 ## Prefer
 
-- Extending schema + band content over one-off hardcoded screens.
-- Local `askMeadow` / `answerFromLesson` over network calls for kid chat.
+- Short teach → check → challenge turns over dumping block text.
+- Local teacher fallback if no API key.

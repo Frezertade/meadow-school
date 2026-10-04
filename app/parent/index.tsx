@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -14,11 +15,20 @@ import { PA_ELEMENTARY_SUBJECTS, PA_NOTES } from '@/content/pa-alignment';
 import type { AgeBand } from '@/content/schema';
 import { colors, fonts, radii, space } from '@/lib/theme';
 import { useAppStore } from '@/lib/store';
+import type { MeadowVoiceChoice } from '@/lib/voice/meadowVoice';
 
 const BANDS: { id: AgeBand; label: string }[] = [
   { id: 'ages-3-4', label: 'Ages 3–4' },
   { id: 'ages-5', label: 'Age 5' },
   { id: 'ages-6-7', label: 'Ages 6–7' },
+];
+
+const VOICE_CHOICES: { id: MeadowVoiceChoice; label: string; hint: string }[] = [
+  { id: 'F2', label: 'F2 · Meadow (default)', hint: 'Bright, playful, youthful' },
+  { id: 'F5', label: 'F5', hint: 'Warm alternate' },
+  { id: 'M4', label: 'M4', hint: 'Gentle masculine' },
+  { id: 'F1', label: 'F1', hint: 'Softer feminine' },
+  { id: 'browser', label: 'Device voice only', hint: 'Skip neural download' },
 ];
 
 export default function ParentScreen() {
@@ -32,6 +42,15 @@ export default function ParentScreen() {
   const renameChild = useAppStore((s) => s.renameChild);
   const setChildBand = useAppStore((s) => s.setChildBand);
   const completed = useAppStore((s) => s.completed);
+  const logs = useAppStore((s) => s.logs);
+  const activeLearning = useAppStore((s) => s.activeLearning);
+  const voiceEnabled = useAppStore((s) => s.voiceEnabled);
+  const setVoiceEnabled = useAppStore((s) => s.setVoiceEnabled);
+  const meadowVoiceId = useAppStore((s) => s.meadowVoiceId);
+  const setMeadowVoiceId = useAppStore((s) => s.setMeadowVoiceId);
+  const [apiDraft, setApiDraft] = useState('');
+  const openaiKey = useAppStore((s) => s.openaiKey);
+  const setOpenaiKey = useAppStore((s) => s.setOpenaiKey);
   const verifyPin = useAppStore((s) => s.verifyPin);
   const hasPin = useAppStore((s) => s.hasPin);
   const ensurePin = useAppStore((s) => s.ensurePin);
@@ -39,6 +58,10 @@ export default function ParentScreen() {
   useEffect(() => {
     hasPin().then((exists) => setNeedsSetup(!exists));
   }, [hasPin]);
+
+  useEffect(() => {
+    setApiDraft(openaiKey || '');
+  }, [openaiKey]);
 
   const unlock = async () => {
     if (pin.length < 4) {
@@ -103,8 +126,106 @@ export default function ParentScreen() {
         </Pressable>
       </View>
       <Text style={styles.lede}>
-        Private family app. Meadow answers only from each lesson’s grounding text. No ads, no social, no outbound links for kids.
+        Meadow is a conversational teacher grounded in each lesson. For a clearly different
+        kid voice on web: paste an OpenAI API key below (uses TTS “nova” instantly). Without a
+        key, Supertonic downloads once (~250MB) then caches — watch the progress bar in a lesson.
       </Text>
+
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Who is learning</Text>
+        <Text style={styles.body}>
+          {activeLearning
+            ? `${activeLearning.childName}${
+                activeLearning.lessonTitle
+                  ? ` · “${activeLearning.lessonTitle}”`
+                  : ' · on the home path'
+              }`
+            : 'No active session yet — child chips start a session.'}
+        </Text>
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Teacher brain (optional)</Text>
+        <Text style={styles.body}>
+          Without a key, Meadow uses a local grounded script (safe, offline). Paste an OpenAI API
+          key for smarter chat replies and for a neural speaking voice (TTS). Stored only on this
+          device — never in git.
+        </Text>
+        <TextInput
+          style={styles.nameInput}
+          value={apiDraft}
+          onChangeText={setApiDraft}
+          onBlur={() => setOpenaiKey(apiDraft.trim() || null)}
+          placeholder="sk-… (optional)"
+          placeholderTextColor={colors.inkSoft}
+          autoCapitalize="none"
+          autoCorrect={false}
+          secureTextEntry
+        />
+        {!!openaiKey && (
+          <Pressable
+            style={styles.primary}
+            onPress={() => {
+              setApiDraft('');
+              void setOpenaiKey(null);
+            }}
+          >
+            <Text style={styles.primaryText}>Clear API key</Text>
+          </Pressable>
+        )}
+        <Pressable
+          style={[styles.primary, { marginTop: 8, backgroundColor: colors.meadow }]}
+          onPress={() => void setOpenaiKey(apiDraft.trim() || null)}
+        >
+          <Text style={styles.primaryText}>Save API key</Text>
+        </Pressable>
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Meadow voice</Text>
+        <Text style={styles.body}>
+          Voice is {voiceEnabled ? 'ON' : 'OFF'}.
+          {Platform.OS === 'web'
+            ? openaiKey
+              ? ' OpenAI TTS (nova) is active — you should hear a clear change right away.'
+              : ' No OpenAI key: Supertonic loads in the lesson (~250MB first time). Device voice covers the wait.'
+            : ' On iOS, Meadow uses the device voice for now.'}
+        </Text>
+        <Pressable
+          style={styles.primary}
+          onPress={() => setVoiceEnabled(!voiceEnabled)}
+        >
+          <Text style={styles.primaryText}>
+            {voiceEnabled ? 'Turn voice OFF' : 'Turn voice ON'}
+          </Text>
+        </Pressable>
+        {Platform.OS === 'web' && (
+          <>
+            <Text style={[styles.cardLabel, { marginTop: 8 }]}>Voice character</Text>
+            <View style={styles.bandRow}>
+              {VOICE_CHOICES.map((v) => (
+                <Pressable
+                  key={v.id}
+                  style={[styles.bandChip, meadowVoiceId === v.id && styles.bandChipOn]}
+                  onPress={() => setMeadowVoiceId(v.id)}
+                >
+                  <Text
+                    style={[
+                      styles.bandChipText,
+                      meadowVoiceId === v.id && styles.bandChipTextOn,
+                    ]}
+                  >
+                    {v.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+            <Text style={styles.progress}>
+              {VOICE_CHOICES.find((v) => v.id === meadowVoiceId)?.hint}
+            </Text>
+          </>
+        )}
+      </View>
 
       {children.map((c) => (
         <View key={c.id} style={styles.card}>
@@ -136,6 +257,25 @@ export default function ParentScreen() {
           </Text>
         </View>
       ))}
+
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Learning log</Text>
+        <Text style={styles.body}>
+          Newest first. Switch learner, open lesson, clear exercises, level-ups, and finishes.
+        </Text>
+        {logs.length === 0 && (
+          <Text style={styles.progress}>No events yet.</Text>
+        )}
+        {logs.slice(0, 40).map((log) => (
+          <View key={log.id} style={styles.logRow}>
+            <Text style={styles.logTime}>
+              {new Date(log.at).toLocaleString()}
+            </Text>
+            <Text style={styles.logDetail}>{log.detail}</Text>
+            <Text style={styles.logKind}>{log.kind}</Text>
+          </View>
+        ))}
+      </View>
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Pennsylvania map</Text>
@@ -216,4 +356,14 @@ const styles = StyleSheet.create({
   progress: { fontFamily: fonts.body, fontSize: 13, color: colors.inkSoft },
   body: { fontFamily: fonts.body, fontSize: 15, color: colors.inkSoft, lineHeight: 22 },
   bullet: { fontFamily: fonts.body, fontSize: 14, color: colors.ink, lineHeight: 22 },
+  logRow: {
+    borderTopWidth: 1,
+    borderTopColor: colors.paperDeep,
+    paddingTop: 8,
+    marginTop: 8,
+    gap: 2,
+  },
+  logTime: { fontFamily: fonts.body, fontSize: 11, color: colors.inkSoft },
+  logDetail: { fontFamily: fonts.bodyBold, fontSize: 14, color: colors.ink },
+  logKind: { fontFamily: fonts.body, fontSize: 11, color: colors.sky },
 });

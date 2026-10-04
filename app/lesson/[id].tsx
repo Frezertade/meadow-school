@@ -1,5 +1,6 @@
 import { Redirect, useLocalSearchParams, router } from 'expo-router';
-import { LessonPlayer } from '@/components/LessonPlayer';
+import { ScrollView } from 'react-native';
+import { TeacherAgent } from '@/components/TeacherAgent';
 import { getLesson } from '@/content';
 import { useActiveChild } from '@/lib/store';
 
@@ -11,10 +12,16 @@ export default function LessonScreen() {
   if (!lesson) return <Redirect href="/" />;
 
   return (
-    <LessonPlayer
-      lesson={lesson}
-      childName={child.name}
-      onBack={() => router.back()}
-    />
+    <ScrollView
+      style={{ flex: 1 }}
+      contentContainerStyle={{ flexGrow: 1 }}
+      keyboardShouldPersistTaps="handled"
+    >
+      <TeacherAgent
+        lesson={lesson}
+        childName={child.name}
+        onBack={() => router.back()}
+      />
+    </ScrollView>
   );
 }

@@ -5,6 +5,7 @@ import {
   REDIRECT,
   sanitizeTutorOutput,
 } from './safety';
+import { reactToChildReply, type TeachTurn } from './teachScript';
 
 export interface TutorMessage {
   role: 'child' | 'meadow';
@@ -15,67 +16,59 @@ export interface TutorContext {
   lesson: Lesson;
   childName?: string;
   ageBandLabel: string;
+  /** Current teaching turn, if in agent lesson flow */
+  turn?: TeachTurn;
 }
 
 function normalize(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
-/** Local grounded tutor — works offline; never leaves the lesson pack. */
+/** Conversational local teacher — grounded, short, not a page reader. */
 export function answerFromLesson(question: string, ctx: TutorContext): string {
-  if (isUnsafeChildInput(question)) {
-    return REDIRECT;
-  }
+  if (isUnsafeChildInput(question)) return REDIRECT;
 
   const q = normalize(question);
   const lesson = ctx.lesson;
   const name = ctx.childName?.trim() || 'friend';
 
+  if (ctx.turn) {
+    return sanitizeTutorOutput(reactToChildReply(question, ctx.turn, lesson, name));
+  }
+
   if (!q || q.length < 2) {
-    return `Hi ${name}! Ask me about this lesson: “${lesson.title}”. I can help with reading, math, or drawing.`;
+    return `I'm listening, ${name}. Tell me what you need — a hint, the sound again, or help with the challenge.`;
   }
 
   if (/\b(hint|help|stuck|idk|i don't know|dont know)\b/.test(q)) {
-    const withHint = lesson.exercises.find(
-      (e) => e.kind === 'math' || e.kind === 'reading'
-    );
+    const withHint = lesson.exercises.find((e) => e.kind === 'math' || e.kind === 'reading');
     if (withHint && 'hint' in withHint) {
-      return `Let's try a hint: ${withHint.hint}`;
+      return `Let's try together. Hint: ${withHint.hint}`;
     }
-    return lesson.blocks[0]?.tutorCue || `Look at the lesson words again. You can do this, ${name}!`;
+    return lesson.blocks[0]?.tutorCue || `Look carefully and try one answer. I'm with you.`;
+  }
+
+  if (/\b(again|repeat|say)\b/.test(q)) {
+    const teach = lesson.blocks.find((b) => b.kind === 'teach') || lesson.blocks[0];
+    return teach
+      ? `Okay, again: ${teach.tutorCue || teach.text.split(/(?<=[.!?])\s+/)[0]}`
+      : `Let's say it slowly one more time.`;
   }
 
   if (/\b(draw|drawing|color|paint|art)\b/.test(q)) {
     const draw = lesson.exercises.find((e) => e.kind === 'drawing');
-    if (draw) {
-      return `For drawing: ${draw.prompt} Take your time. Artists try things.`;
-    }
-    return 'You can draw ideas from our lesson. Keep it simple and fun.';
+    if (draw) return `For drawing: ${draw.prompt} Have fun — artists try things.`;
+    return `You can draw something from our lesson. Keep it simple and fun.`;
   }
 
-  if (/\b(answer|what is it|tell me)\b/.test(q)) {
-    return `I won't spoil it yet. Try once more — use the pictures and the words in “${lesson.title}”. Want a hint?`;
-  }
-
-  if (/\b(read|letter|sound|word|spell)\b/.test(q) && lesson.subject === 'english') {
-    const teach = lesson.blocks.find((b) => b.kind === 'teach') || lesson.blocks[0];
-    return teach
-      ? `From our lesson: ${teach.text}`
-      : 'Say the sounds slowly, then push them together.';
-  }
-
-  if (/\b(count|number|math|add|plus|how many)\b/.test(q) && lesson.subject === 'math') {
-    const teach = lesson.blocks.find((b) => b.kind === 'teach') || lesson.blocks[0];
-    return teach
-      ? `Math tip from the lesson: ${teach.text}`
-      : 'Touch each thing once while you count.';
+  if (/\b(answer|what is it|tell me the answer)\b/.test(q)) {
+    return `I won't give it away yet. Try once — then ask me for a hint if you need one.`;
   }
 
   if (/\b(who are you|your name)\b/.test(q)) {
-    return `I'm Meadow, your lesson helper for ${ctx.ageBandLabel}. I only talk about what we are learning right now.`;
+    return `I'm Meadow, your teacher for ${ctx.ageBandLabel}. I only teach what's in this lesson, and I'm here to talk with you.`;
   }
 
-  // Keyword overlap against grounding paragraphs
   const chunks = lesson.groundingText
     .split(/\n+/)
     .map((c) => c.trim())
@@ -89,38 +82,77 @@ export function answerFromLesson(question: string, ctx: TutorContext): string {
     })
     .sort((a, b) => b.hits - a.hits);
 
-  if (scored[0] && scored[0].hits > 0) {
-    const clean = scored[0].chunk.replace(/^[-*•]\s*/, '').slice(0, 280);
-    return sanitizeTutorOutput(`Here's what our lesson says: ${clean}`);
+  if (scored[0]?.hits) {
+    const clean = scored[0].chunk.replace(/^[-*•]\s*/, '').slice(0, 180);
+    return sanitizeTutorOutput(`From what we're learning: ${clean} Want to try the challenge now?`);
   }
 
   return sanitizeTutorOutput(
-    `Let's stay with “${lesson.title}”. ${lesson.summary} Ask me for a hint, help drawing, or help with a sound or number.`
+    `Let's stay with “${lesson.title}”. You can ask for a hint, ask me to say it again, or tell me what you see.`
   );
 }
 
 export function buildLlmMessages(question: string, ctx: TutorContext) {
   return [
-    { role: 'system' as const, content: CHILD_SAFETY_SYSTEM },
     {
       role: 'system' as const,
-      content: `AGE BAND: ${ctx.ageBandLabel}\nLESSON TITLE: ${ctx.lesson.title}\nGROUNDING (sole knowledge source):\n${ctx.lesson.groundingText}\n\nEXERCISES:\n${JSON.stringify(ctx.lesson.exercises, null, 2)}`,
+      content: `${CHILD_SAFETY_SYSTEM}
+
+You are Meadow, a warm conversational TEACHER (not a text reader).
+- Speak in short turns (1–3 kid sentences).
+- Ask checks, give hints, celebrate effort.
+- Never read a whole lesson page aloud.
+- Use ONLY the grounding text and exercises.
+- Sound like a kind preschool/early-elementary teacher.`,
+    },
+    {
+      role: 'system' as const,
+      content: `AGE BAND: ${ctx.ageBandLabel}
+LESSON: ${ctx.lesson.title}
+GROUNDING:
+${ctx.lesson.groundingText}
+
+CURRENT TURN: ${ctx.turn ? JSON.stringify(ctx.turn) : 'free chat'}
+EXERCISES: ${JSON.stringify(ctx.lesson.exercises)}`,
     },
     { role: 'user' as const, content: question },
   ];
 }
 
-/**
- * Prefer local grounded answers. Optional parent-configured API can be wired later;
- * always fall back to answerFromLesson so the app never depends on the network for safety.
- */
+async function askOpenAi(question: string, ctx: TutorContext, apiKey: string): Promise<string | null> {
+  try {
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        temperature: 0.6,
+        max_tokens: 180,
+        messages: buildLlmMessages(question, ctx),
+      }),
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as {
+      choices?: Array<{ message?: { content?: string } }>;
+    };
+    const text = data.choices?.[0]?.message?.content?.trim();
+    return text ? sanitizeTutorOutput(text) : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function askMeadow(
   question: string,
   ctx: TutorContext,
-  _opts?: { apiKey?: string }
+  opts?: { apiKey?: string }
 ): Promise<string> {
-  // Network LLM intentionally not required for v1 private family build.
-  // When apiKey is present in a future iteration, call provider with buildLlmMessages
-  // then sanitizeTutorOutput. Until then: local grounding only.
+  if (opts?.apiKey) {
+    const llm = await askOpenAi(question, ctx, opts.apiKey);
+    if (llm) return llm;
+  }
   return answerFromLesson(question, ctx);
 }
