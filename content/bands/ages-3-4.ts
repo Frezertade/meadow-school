@@ -176,6 +176,7 @@ Sky often blue; grass green; sun yellow.
           id: 'b1',
           kind: 'teach',
           text: 'Blue for sky. Green for grass. Yellow for sun. Let’s make a tiny meadow!',
+          tutorCue: 'Point up, down, then at the sun as you name each color; invite the child to point and say each color with you.',
         },
       ],
       exercises: [

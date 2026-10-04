@@ -200,6 +200,7 @@ Key facts:
           id: 'b1',
           kind: 'teach',
           text: 'Plants are living things. They need water, light, and soil. Let’s notice a plant near you.',
+          tutorCue: 'Count the three needs on three fingers; ask the child to find a real plant nearby and point at its leaves.',
         },
       ],
       exercises: [
@@ -275,6 +276,7 @@ Key facts (keep accurate and light):
           id: 'b1',
           kind: 'story',
           text: 'Pennsylvania’s state flower is mountain laurel. The state bird is the ruffed grouse. Learning symbols helps us know our home.',
+          tutorCue: 'Storyteller tone; say "ruffed grouse" and "mountain laurel" slowly and invite the child to echo each name.',
         },
       ],
       exercises: [
@@ -337,6 +339,7 @@ Key facts (calm, never graphic):
           id: 'b1',
           kind: 'teach',
           text: 'We practice so our bodies know what to do. Exit calmly. Meet at our family meeting spot outside.',
+          tutorCue: 'Calm, steady voice — practice language, never scary; rehearse "outside to our spot" like a game drill.',
         },
       ],
       exercises: [

@@ -106,6 +106,7 @@ Key facts:
           id: 'b1',
           kind: 'teach',
           text: 'Plant one seed at a time until we reach ten. 1-2-3-4-5-6-7-8-9-10!',
+          tutorCue: 'Count aloud slowly with the child, one finger per seed; wiggle all ten fingers together at ten.',
         },
       ],
       exercises: [
@@ -187,6 +188,7 @@ Key facts:
           id: 'b1',
           kind: 'story',
           text: 'Our home is in Pennsylvania. Pennsylvania is part of the United States. We take care of our neighbors and our home.',
+          tutorCue: 'Warm storytelling voice; hand on heart for "our home", arms wide for "Pennsylvania".',
         },
       ],
       exercises: [
