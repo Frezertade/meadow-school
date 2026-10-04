@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.3.1 — 2026-10-04 — Bugs found by watching a real lesson
+
+Fixed by clicking through lessons, not by reading the code.
+
+- **Scene count no longer shifts mid-lesson** — the teach plan was rebuilt when the
+  progress store hydrated, so a returning child saw "Scene 2/18" become "6/17" and
+  the transport markers moved. The plan is now frozen per lesson/child
+- **Meadow stopped reading internal labels aloud** — intros spoke the exercise's
+  `instruction`, which carries the `Warm-up:` / `Stretch:` / `Strong:` tier, so
+  children heard an internal difficulty tag. Intros are now a short varied handoff
+- **Meadow says the real instruction** — the exercise turn speaks `prompt` (or the
+  `phrase` for listen-say) instead of a canned "I'll stay right here" line that
+  repeated on every exercise, ~20x per lesson
+- **Buttons no longer masquerade as speech** — tapping a chip showed
+  `You said: "Let's try it"`. Only real mic input is echoed now
+
 ## 1.3.0 — 2026-10-04 — Show polish loop
 
 Every scene teaches visually; transport seeks; home leads with Next up.

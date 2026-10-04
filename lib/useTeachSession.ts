@@ -72,7 +72,18 @@ export function useTeachSession({ lesson, childName, onBack }: Props) {
   const [openMastery] = useState(mastery);
   const [openLogs] = useState(logs);
 
-  const { plan, startIndex } = useMemo(() => {
+  // The plan is frozen for the whole session. It used to be a useMemo over
+  // mastery/logs, so a returning child's store hydrated after first render and
+  // the plan rebuilt mid-lesson — warm-ups vanished, the total flipped 18 → 17
+  // and the transport markers moved while the child was watching. Recompute only
+  // when the lesson or the child actually changes.
+  const planRef = useRef<{
+    key: string;
+    plan: TeachTurn[];
+    startIndex: number;
+  } | null>(null);
+  const planKey = `${lesson.id}:${childId ?? ''}`;
+  if (!planRef.current || planRef.current.key !== planKey) {
     const weak = childId ? weakestSkills(lesson, childId, openMastery, 2) : [];
     const solidCount = childId
       ? lessonSkills(lesson).filter(
@@ -116,8 +127,10 @@ export function useTeachSession({ lesson, childName, onBack }: Props) {
         if (idx > 0) start = idx;
       }
     }
-    return { plan: p, startIndex: start };
-  }, [lesson, childName, childId, openMastery, openLogs]);
+    planRef.current = { key: planKey, plan: p, startIndex: start };
+  }
+  const { plan } = planRef.current;
+  const startIndex = planRef.current.startIndex;
 
   const [turnIndex, setTurnIndex] = useState(startIndex);
   const [busyListen, setBusyListen] = useState(false);
@@ -303,11 +316,13 @@ export function useTeachSession({ lesson, childName, onBack }: Props) {
     }
   }, [maxDiff]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleChildText = async (text: string) => {
+  const handleChildText = async (text: string, opts?: { heard?: boolean }) => {
     const cleaned = text.trim();
     if (!cleaned || !turn) return;
     touch();
-    setLastHeard(cleaned);
+    // Only echo speech the child actually said. Chip taps used to land here too,
+    // so tapping "Let's try it" displayed: You said: "Let's try it".
+    if (opts?.heard) setLastHeard(cleaned);
     setThinking(true);
     let reaction: string;
     try {
@@ -353,7 +368,7 @@ export function useTeachSession({ lesson, childName, onBack }: Props) {
       unlockAndSpeakNow(miss);
       return;
     }
-    await handleChildText(heard);
+    await handleChildText(heard, { heard: true });
   };
 
   const onExerciseComplete = (exerciseId: string) => {

@@ -114,7 +114,7 @@ export function buildTeachPlan(
 
     turns.push({
       phase: 'exercise_intro',
-      say: introduceExercise(ex),
+      say: introduceExercise(exercises.indexOf(ex)),
       exerciseId: ex.id,
       chips: ["Let's try it", 'Explain again'],
       waitForChild: true,
@@ -122,7 +122,10 @@ export function buildTeachPlan(
 
     turns.push({
       phase: 'exercise',
-      say: `Your turn on the screen, ${name}. I'll stay right here if you need me.`,
+      // Speak the actual prompt once — pre-readers get the instruction without
+      // touching the card. Replaces the canned "I'll stay right here" line that
+      // repeated on every exercise (~20x a lesson).
+      say: spokenInstruction(ex),
       exerciseId: ex.id,
       waitForChild: false,
     });
@@ -198,9 +201,25 @@ function checkChips(block: LessonBlock, lesson: Lesson): string[] {
   return ['I remember!', 'Say it again', 'I forgot'];
 }
 
-function introduceExercise(ex: Exercise): string {
-  // Instructions already say Warm-up/Stretch/Strong — keep the line to one beat.
-  return `Your turn — ${ex.instruction}`;
+/** What Meadow actually says for an exercise, per kind (listen-say has no prompt). */
+function spokenInstruction(ex: Exercise): string {
+  return ex.kind === 'listen-say' ? ex.phrase : ex.prompt;
+}
+
+function introduceExercise(index: number): string {
+  // Never read `ex.instruction` aloud: it carries the Warm-up/Stretch/Strong
+  // tier label and the visible card title, so the child heard "Warm-up:" — an
+  // internal difficulty tag — and the same string three times on one screen.
+  // One short handoff beat instead, varied so it never nags.
+  const openers = [
+    'Here comes this one.',
+    "Let's try this one.",
+    'Okay, this next one.',
+    'Ready for this one?',
+    "Now this one's fun.",
+    'Here is a good one.'
+  ];
+  return openers[index % openers.length];
 }
 
 export function reactToChildReply(

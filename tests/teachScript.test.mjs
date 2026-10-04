@@ -62,6 +62,26 @@ describe('buildTeachPlan', () => {
     const short = lesson({ exercises: [reading('r1', 1), reading('r2', 2)] });
     assert.ok(!buildTeachPlan(short, 'Sam').some((t) => t.phase === 'break'));
   });
+  it('never reads a difficulty tier label or card title aloud', () => {
+    const ex = reading('r1', 1);
+    ex.instruction = 'Warm-up: Tap the Aa card';
+    const plan = buildTeachPlan(lesson({ exercises: [ex] }), 'Sam');
+    const spoken = plan.map((t) => t.say || '').join(' | ');
+    assert.ok(!/\b(Warm-up|Stretch|Strong)\b/.test(spoken), `tier label spoken: ${spoken}`);
+    assert.ok(!spoken.includes('Tap the Aa card'), `card title spoken: ${spoken}`);
+  });
+  it('speaks the real prompt on the exercise turn', () => {
+    const ex = reading('r1', 1);
+    ex.prompt = 'Which one says Aa?';
+    const plan = buildTeachPlan(lesson({ exercises: [ex] }), 'Sam');
+    const turn = plan.find((t) => t.phase === 'exercise');
+    assert.equal(turn.say, 'Which one says Aa?');
+  });
+  it('drops the canned presence line that repeated on every exercise', () => {
+    const plan = buildTeachPlan(lesson(), 'Sam');
+    const spoken = plan.map((t) => t.say || '');
+    assert.ok(!spoken.some((s) => /stay right here/i.test(s)));
+  });
   it('celebrate teases the stretch twist and next lesson', () => {
     const plan = buildTeachPlan(lesson(), 'Sam', [], { nextTitle: 'Next One' });
     const last = plan[plan.length - 1];
