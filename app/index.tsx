@@ -115,6 +115,8 @@ export default function HomeScreen() {
                 greeted.current = null;
               }}
               style={[styles.childChip, c.id === child.id && styles.childChipOn]}
+              accessibilityRole="button"
+              accessibilityLabel={`Learn as ${c.name}`}
             >
               <Text
                 style={[styles.childChipText, c.id === child.id && styles.childChipTextOn]}
@@ -140,6 +142,8 @@ export default function HomeScreen() {
                 unlockVoice();
                 router.push(`/lesson/${activeLearning.lessonId}`);
               }}
+              accessibilityRole="button"
+              accessibilityLabel={`Continue ${activeLearning.lessonTitle ?? 'lesson'}`}
             >
               <Text style={styles.continueText}>Continue →</Text>
             </Pressable>
@@ -171,6 +175,9 @@ export default function HomeScreen() {
                 unlockVoice();
                 router.push(`/lesson/${lesson.id}`);
               }}
+              accessibilityRole="button"
+              accessibilityLabel={`${lesson.title}${done ? ', completed' : !unlocked ? ', locked' : ''}`}
+              accessibilityHint={unlocked ? 'Open this lesson' : 'Finish the previous lesson to unlock'}
             >
               <View style={styles.lessonTop}>
                 <Text style={styles.lessonSubject}>
@@ -193,6 +200,18 @@ export default function HomeScreen() {
               <Text style={styles.lessonMeta}>
                 {lesson.minutes} min · {total} challenges · warm-up → stretch → strong
               </Text>
+              <View
+                style={styles.track}
+                accessibilityRole="progressbar"
+                accessibilityLabel={`${doneIds.length} of ${total} challenges done`}
+              >
+                <View
+                  style={[
+                    styles.fill,
+                    { width: `${total ? Math.round((doneIds.length / total) * 100) : 0}%` },
+                  ]}
+                />
+              </View>
             </Pressable>
           );
         })}
@@ -321,7 +340,7 @@ const styles = StyleSheet.create({
   lessonSubject: {
     fontFamily: fonts.bodyBold,
     fontSize: 11,
-    color: colors.sky,
+    color: colors.inkSoft,
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
@@ -331,6 +350,14 @@ const styles = StyleSheet.create({
   lessonTitle: { fontFamily: fonts.displaySoft, fontSize: 22, color: colors.ink },
   lessonSummary: { fontFamily: fonts.body, fontSize: 15, color: colors.inkSoft, lineHeight: 22 },
   lessonMeta: { fontFamily: fonts.body, fontSize: 13, color: colors.inkSoft, marginTop: 4 },
+  track: {
+    height: 8,
+    borderRadius: radii.pill,
+    backgroundColor: colors.paperDeep,
+    marginTop: 8,
+    overflow: 'hidden',
+  },
+  fill: { height: 8, backgroundColor: colors.meadow },
   otherBands: {
     fontFamily: fonts.bodyExtra,
     fontSize: 14,

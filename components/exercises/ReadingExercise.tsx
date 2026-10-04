@@ -59,6 +59,9 @@ export function ReadingExercise({ exercise, childName, onComplete }: Props) {
             <Pressable
               key={choice}
               onPress={() => choose(choice)}
+              accessibilityRole="button"
+              accessibilityLabel={`Answer: ${choice}`}
+              accessibilityState={{ selected: isSel }}
               style={[
                 styles.choice,
                 correct && styles.correct,

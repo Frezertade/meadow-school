@@ -127,13 +127,21 @@ export function DrawingCanvas({ prompt, instruction, onComplete, successMessage 
         )}
       </View>
       <View style={styles.row}>
-        <Pressable style={styles.secondary} onPress={clear}>
+        <Pressable
+          style={styles.secondary}
+          onPress={clear}
+          accessibilityRole="button"
+          accessibilityLabel="Clear drawing"
+        >
           <Text style={styles.secondaryText}>Clear</Text>
         </Pressable>
         <Pressable
           style={[styles.primary, !hasInk && styles.disabled]}
           disabled={!hasInk}
           onPress={markDone}
+          accessibilityRole="button"
+          accessibilityLabel="I'm done drawing"
+          accessibilityHint="Enabled after you draw something"
         >
           <Text style={styles.primaryText}>{done ? 'Saved!' : "I'm done"}</Text>
         </Pressable>

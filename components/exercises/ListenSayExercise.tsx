@@ -60,12 +60,23 @@ export function ListenSayExercise({ exercise, childName, onComplete }: Props) {
       <Text style={styles.instruction}>{exercise.instruction}</Text>
       <Text style={styles.prompt}>{exercise.phrase}</Text>
 
-      <Pressable style={styles.hear} onPress={hear}>
+      <Pressable
+        style={styles.hear}
+        onPress={hear}
+        accessibilityRole="button"
+        accessibilityLabel={`Hear Meadow say ${exercise.phrase}`}
+      >
         <Text style={styles.hearText}>🔊 Hear it</Text>
       </Pressable>
 
       {heard && micAvailable && (
-        <Pressable style={styles.mic} onPress={sayIt} disabled={listening}>
+        <Pressable
+          style={styles.mic}
+          onPress={sayIt}
+          disabled={listening}
+          accessibilityRole="button"
+          accessibilityLabel={`Say ${exercise.phrase} into the microphone`}
+        >
           {listening ? (
             <ActivityIndicator color={colors.white} />
           ) : (
@@ -75,7 +86,12 @@ export function ListenSayExercise({ exercise, childName, onComplete }: Props) {
       )}
 
       {heard && (
-        <Pressable style={styles.said} onPress={() => finish(true)}>
+        <Pressable
+          style={styles.said}
+          onPress={() => finish(true)}
+          accessibilityRole="button"
+          accessibilityLabel="I said it, mark complete"
+        >
           <Text style={styles.saidText}>✅ I said it!</Text>
         </Pressable>
       )}

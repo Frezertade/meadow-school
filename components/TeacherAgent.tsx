@@ -13,6 +13,7 @@ import { MathExercise } from '@/components/exercises/MathExercise';
 import { ReadingExercise } from '@/components/exercises/ReadingExercise';
 import { SequenceExercise } from '@/components/exercises/SequenceExercise';
 import { ListenSayExercise } from '@/components/exercises/ListenSayExercise';
+import { Celebration } from '@/components/Celebration';
 import {
   askMeadow,
 } from '@/lib/agent/tutor';
@@ -86,6 +87,7 @@ export function TeacherAgent({ lesson, childName, onBack }: Props) {
   const clearActiveLesson = useAppStore((s) => s.clearActiveLesson);
   const completed = useAppStore((s) => s.completed);
   const childId = useAppStore((s) => s.activeChildId);
+  const stars = useAppStore((s) => s.stars ?? {});
   const mastery = useAppStore((s) => s.mastery ?? {});
   // Snapshot mastery at session open: mid-session progress must not shift
   // the plan (e.g. a vanishing review turn) under the child's feet.
@@ -326,6 +328,8 @@ export function TeacherAgent({ lesson, childName, onBack }: Props) {
             stopListening();
             onBack();
           }}
+          accessibilityRole="button"
+          accessibilityLabel="Go back to lessons"
         >
           <Text style={styles.back}>← Back</Text>
         </Pressable>
@@ -405,7 +409,13 @@ export function TeacherAgent({ lesson, childName, onBack }: Props) {
       {turn?.waitForChild && !needsTap && (
         <View style={styles.replyRow}>
           {(turn.chips || []).map((chip) => (
-            <Pressable key={chip} style={styles.chip} onPress={() => onChip(chip)}>
+            <Pressable
+              key={chip}
+              style={styles.chip}
+              onPress={() => onChip(chip)}
+              accessibilityRole="button"
+              accessibilityLabel={`Answer: ${chip}`}
+            >
               <Text style={styles.chipText}>{chip}</Text>
             </Pressable>
           ))}
@@ -413,6 +423,9 @@ export function TeacherAgent({ lesson, childName, onBack }: Props) {
             style={[styles.mic, busyListen && styles.micOn]}
             onPress={onMic}
             disabled={busyListen}
+            accessibilityRole="button"
+            accessibilityLabel="Talk to Meadow with your voice"
+            accessibilityHint="Uses the device microphone when available"
           >
             {busyListen ? (
               <ActivityIndicator color={colors.ink} />
@@ -424,7 +437,12 @@ export function TeacherAgent({ lesson, childName, onBack }: Props) {
       )}
 
       {!turn?.waitForChild && turn?.phase !== 'exercise' && !needsTap && (
-        <Pressable style={styles.continue} onPress={advance}>
+        <Pressable
+          style={styles.continue}
+          onPress={advance}
+          accessibilityRole="button"
+          accessibilityLabel="Continue with Meadow"
+        >
           <Text style={styles.continueText}>Continue with Meadow</Text>
         </Pressable>
       )}
@@ -484,12 +502,29 @@ export function TeacherAgent({ lesson, childName, onBack }: Props) {
       )}
 
       {turn?.phase === 'celebrate' && (
-        <Pressable style={styles.continue} onPress={onBack}>
-          <Text style={styles.continueText}>Done for now</Text>
-        </Pressable>
+        <>
+          <Celebration
+            childName={childName}
+            lessonTitle={lesson.title}
+            stars={Object.keys(stars).filter((k) => childId && k.startsWith(childId)).length}
+          />
+          <Pressable
+            style={styles.continue}
+            onPress={onBack}
+            accessibilityRole="button"
+            accessibilityLabel="Done for now, back to lessons"
+          >
+            <Text style={styles.continueText}>Done for now</Text>
+          </Pressable>
+        </>
       )}
 
-      <Pressable style={styles.hear} onPress={() => turn && speakLine(turn.say, true)}>
+      <Pressable
+        style={styles.hear}
+        onPress={() => turn && speakLine(turn.say, true)}
+        accessibilityRole="button"
+        accessibilityLabel="Hear Meadow say this again"
+      >
         <Text style={styles.hearText}>
           {canUseSpeech() ? '🔊 Hear Meadow again' : 'Voice unavailable'}
         </Text>
@@ -639,15 +674,15 @@ const styles = StyleSheet.create({
   replyRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: {
     backgroundColor: colors.skySoft,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     borderRadius: radii.pill,
   },
   chipText: { fontFamily: fonts.bodyBold, fontSize: 15, color: colors.ink },
   mic: {
     backgroundColor: colors.honey,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 18,
+    paddingVertical: 14,
     borderRadius: radii.pill,
     minWidth: 88,
     alignItems: 'center',
@@ -681,7 +716,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   lockNote: { fontFamily: fonts.body, color: colors.inkSoft, fontSize: 15 },
-  hear: { alignItems: 'center', paddingVertical: 8 },
+  hear: { alignItems: 'center', paddingVertical: 12, minHeight: 48, justifyContent: 'center' },
   hearText: { fontFamily: fonts.bodyBold, color: colors.meadow, fontSize: 15 },
   freeChat: {
     fontFamily: fonts.body,

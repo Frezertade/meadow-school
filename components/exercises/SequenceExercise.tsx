@@ -78,7 +78,12 @@ export function SequenceExercise({ exercise, childName, onComplete }: Props) {
         ))}
       </View>
       {picked.length > 0 && status !== 'correct' && (
-        <Pressable style={styles.undo} onPress={undo}>
+        <Pressable
+          style={styles.undo}
+          onPress={undo}
+          accessibilityRole="button"
+          accessibilityLabel="Undo last step"
+        >
           <Text style={styles.undoText}>↩ Undo last</Text>
         </Pressable>
       )}
@@ -86,7 +91,13 @@ export function SequenceExercise({ exercise, childName, onComplete }: Props) {
       <Text style={styles.zoneLabel}>Choices</Text>
       <View style={styles.choices}>
         {remaining.map((item) => (
-          <Pressable key={item} onPress={() => tap(item)} style={styles.choice}>
+          <Pressable
+            key={item}
+            onPress={() => tap(item)}
+            accessibilityRole="button"
+            accessibilityLabel={`Place step: ${item}`}
+            style={styles.choice}
+          >
             <Text style={styles.choiceText}>{item}</Text>
           </Pressable>
         ))}
