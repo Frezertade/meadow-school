@@ -76,3 +76,4 @@
 | Physical education | ⬜ | ⬜ | ⬜ |
 | Music | ✅ | ⬜ | ⬜ |
 | Art | ✅ | ✅ | ⬜ |
+
