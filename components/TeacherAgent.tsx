@@ -28,6 +28,7 @@ import {
   orderedExercises,
   skillLabel,
   skillLevel,
+  sortedPathLessons,
   unlockedDifficulty,
   weakestSkills,
 } from '@/lib/progress';
@@ -89,9 +90,11 @@ export function TeacherAgent({ lesson, childName, onBack }: Props) {
   // Snapshot mastery at session open: mid-session progress must not shift
   // the plan (e.g. a vanishing review turn) under the child's feet.
   const [openMastery] = useState(mastery);
+  const logs = useAppStore((s) => s.logs);
+  // Snapshot logs too: the lesson_open we log on mount must not count as memory.
+  const [openLogs] = useState(logs);
 
-  // Spaced review + auto-level: weakest skills resurface after greeting;
-  // children solid on 2+ skills skip mastered warm-ups and jump in.
+  // Spaced review + auto-level + memory + cliffhanger.
   const { plan, startIndex } = useMemo(() => {
     const weak = childId ? weakestSkills(lesson, childId, openMastery, 2) : [];
     const solidCount = childId
@@ -100,8 +103,29 @@ export function TeacherAgent({ lesson, childName, onBack }: Props) {
         ).length
       : 0;
     const skip = solidCount >= 2;
+    let memoryLine: string | undefined;
+    if (childId) {
+      const prev = openLogs.find(
+        (l) =>
+          (l.kind === 'lesson_complete' || l.kind === 'lesson_open') &&
+          l.childId === childId &&
+          l.lessonId &&
+          l.lessonId !== lesson.id &&
+          l.lessonTitle
+      );
+      if (prev) {
+        memoryLine =
+          prev.kind === 'lesson_complete'
+            ? `Last time you finished “${prev.lessonTitle}” — amazing!`
+            : `Last time we started “${prev.lessonTitle}”.`;
+      }
+    }
+    const path = sortedPathLessons(getBand(lesson.ageBand).lessons);
+    const next = path.find((l) => (l.pathOrder ?? 99) > (lesson.pathOrder ?? 99));
     const p = buildTeachPlan(lesson, childName, weak.map(skillLabel), {
       skipWarmups: skip,
+      nextTitle: next?.title,
+      memoryLine,
     });
     let start = 0;
     if (skip && childId) {
@@ -116,7 +140,7 @@ export function TeacherAgent({ lesson, childName, onBack }: Props) {
       }
     }
     return { plan: p, startIndex: start };
-  }, [lesson, childName, childId, openMastery]);
+  }, [lesson, childName, childId, openMastery, openLogs]);
   const [turnIndex, setTurnIndex] = useState(startIndex);
 
   const turn: TeachTurn | undefined = plan[turnIndex];
@@ -145,11 +169,12 @@ export function TeacherAgent({ lesson, childName, onBack }: Props) {
         return;
       }
       if (immediate) {
-        // Prefer neural when ready; wait a bit if still downloading.
+        // Prefer neural when ready; never trap UI on the download:
+        // device voice covers the wait, neural picks up next line.
         unlockVoice();
         await meadowSpeak(text, {
           enabled: true,
-          waitNeuralMs: voiceStatus === 'loading' ? 45_000 : 0,
+          waitNeuralMs: voiceStatus === 'loading' ? 8_000 : 0,
         });
         return;
       }
@@ -250,7 +275,10 @@ export function TeacherAgent({ lesson, childName, onBack }: Props) {
 
   const onMic = async () => {
     if (!canListen()) {
-      setMeadowLine('Mic listening works best in Chrome or Safari. You can tap the big buttons to talk to me.');
+      const guidance =
+        'Mic listening works best in Chrome or Safari. You can tap the big buttons to talk to me.';
+      setMeadowLine(guidance);
+      unlockAndSpeakNow(guidance);
       return;
     }
     unlockVoice();

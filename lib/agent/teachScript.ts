@@ -4,6 +4,7 @@ import { exerciseDifficulty, orderedExercises } from '@/lib/progress';
 export type TeachPhase =
   | 'greet'
   | 'review'
+  | 'break'
   | 'teach'
   | 'check'
   | 'exercise_intro'
@@ -27,21 +28,32 @@ export interface TeachTurn {
   exerciseId?: string;
 }
 
+export interface TeachPlanOpts {
+  skipWarmups?: boolean;
+  /** Next path lesson title — teased at celebration as a cliffhanger */
+  nextTitle?: string;
+  /** Recalled win from a previous session ("Last time you finished X!") */
+  memoryLine?: string;
+}
+
 /** Build a teaching conversation from lesson content — agent leads, does not read the whole page. */
 export function buildTeachPlan(
   lesson: Lesson,
   childName: string,
   reviewLabels: string[] = [],
-  opts: { skipWarmups?: boolean } = {}
+  opts: TeachPlanOpts = {}
 ): TeachTurn[] {
   const name = childName.trim() || 'friend';
   const turns: TeachTurn[] = [];
 
+  const greetSay = opts.skipWarmups
+    ? `Welcome back, ${name}! You've done the warm-ups before — let's jump to the good stuff in ${lesson.title}. Ready?`
+    : opts.memoryLine
+      ? `Hi ${name}! ${opts.memoryLine} Now let's learn about ${lesson.title}. Ready to play?`
+      : `Hi ${name}! I'm Meadow, your teacher for today. We're learning about ${lesson.title}. Ready to play and learn with me?`;
   turns.push({
     phase: 'greet',
-    say: opts.skipWarmups
-      ? `Welcome back, ${name}! You've done the warm-ups before — let's jump to the good stuff in ${lesson.title}. Ready?`
-      : `Hi ${name}! I'm Meadow, your teacher for today. We're learning about ${lesson.title}. Ready to play and learn with me?`,
+    say: greetSay,
     ask: 'Are you ready?',
     chips: ["I'm ready!", 'Tell me more', 'Need a minute'],
     waitForChild: true,
@@ -115,11 +127,26 @@ export function buildTeachPlan(
     });
   });
 
+  // Movement break halfway through longer lessons (5–8 min arcs).
+  const introIdx: number[] = [];
+  turns.forEach((t, i) => {
+    if (t.phase === 'exercise_intro') introIdx.push(i);
+  });
+  if (exercises.length >= 4 && introIdx.length >= 2) {
+    turns.splice(introIdx[1], 0, {
+      phase: 'break',
+      say: `${name}, wiggle break! Stand up tall, shake your shoulders, take one big breath… and sit back down like a quiet mouse.`,
+      ask: 'Ready to keep going?',
+      chips: ["I'm back!", 'One more wiggle'],
+      waitForChild: true,
+    });
+  }
+
   turns.push({
     phase: 'celebrate',
     say: `You finished “${lesson.title}”, ${name}! I'm proud of how you listened and tried. Want to tell me your favorite part?${
-      lesson.stretch ? ` Next time, a twist: ${lesson.stretch}` : ''
-    }`,
+      lesson.stretch ? ` Next challenge: ${lesson.stretch}` : ''
+    }${opts.nextTitle ? ` After that: ${opts.nextTitle}!` : ''}`,
     chips: ['The sounds', 'The drawing', 'The counting', 'All of it!'],
     waitForChild: true,
   });

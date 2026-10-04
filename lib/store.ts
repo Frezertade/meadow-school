@@ -67,7 +67,6 @@ export interface SkillMastery {
   seen: number;
   lastSeen: string;
 }
-
 interface ProgressState {
   children: ChildProfile[];
   activeChildId: string | null;
@@ -78,6 +77,8 @@ interface ProgressState {
   voiceEnabled: boolean;
   /** Per-child skill mastery keyed `${childId}:${skillId}` */
   mastery: Record<string, SkillMastery>;
+  /** Earned stars keyed `${childId}:${lessonId}` — one per finished lesson */
+  stars: Record<string, true>;
   /** Neural voice id (F2 default) or `browser` for device TTS only. */
   meadowVoiceId: MeadowVoiceChoice;
   /** Optional OpenAI key for smarter conversational teaching (parent desk). Never committed. */
@@ -136,6 +137,7 @@ export const useAppStore = create<ProgressState>()(
       completed: {},
       logs: [],
       mastery: {},
+      stars: {},
       activeLearning: null,
       parentUnlocked: false,
       voiceEnabled: true,
@@ -277,13 +279,20 @@ export const useAppStore = create<ProgressState>()(
 
       completeLesson: (lessonId, lessonTitle) => {
         const child = childOf(get);
+        const skey = `${child.id}:${lessonId}`;
+        const already = !!(get().stars ?? {})[skey];
+        if (!already) {
+          set({ stars: { ...(get().stars ?? {}), [skey]: true } });
+        }
         pushLog(get, set, {
           kind: 'lesson_complete',
           childId: child.id,
           childName: child.name,
           lessonId,
           lessonTitle,
-          detail: `${child.name} finished “${lessonTitle}”`,
+          detail: already
+            ? `${child.name} finished “${lessonTitle}” again`
+            : `${child.name} finished “${lessonTitle}” ⭐ first star for this lesson`,
         });
       },
 
@@ -367,6 +376,7 @@ export const useAppStore = create<ProgressState>()(
         activeChildId: s.activeChildId,
         completed: s.completed,
         mastery: s.mastery ?? {},
+        stars: s.stars ?? {},
         voiceEnabled: s.voiceEnabled,
         meadowVoiceId: s.meadowVoiceId,
         logs: s.logs,

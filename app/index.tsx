@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { curriculumBands, getBand } from '@/content';
+import { MeadowGarden } from '@/components/MeadowGarden';
 import { VoiceBar } from '@/components/VoiceBar';
 import {
   isLessonUnlocked,
@@ -29,6 +30,8 @@ export default function HomeScreen() {
   const voiceEnabled = useAppStore((s) => s.voiceEnabled);
   const setVoiceEnabled = useAppStore((s) => s.setVoiceEnabled);
   const activeLearning = useAppStore((s) => s.activeLearning);
+  const stars = useAppStore((s) => s.stars ?? {});
+  const starCount = Object.keys(stars).filter((k) => k.startsWith(child.id)).length;
   const band = getBand(child.ageBand);
   const pathLessons = sortedPathLessons(band.lessons);
   const greeted = useRef<string | null>(null);
@@ -130,7 +133,20 @@ export default function HomeScreen() {
               ? ` · ${activeLearning.lessonTitle}`
               : ' · choosing a lesson'}
           </Text>
+          {!!activeLearning?.lessonId && (
+            <Pressable
+              style={styles.continueBtn}
+              onPress={() => {
+                unlockVoice();
+                router.push(`/lesson/${activeLearning.lessonId}`);
+              }}
+            >
+              <Text style={styles.continueText}>Continue →</Text>
+            </Pressable>
+          )}
         </View>
+
+        <MeadowGarden stars={starCount} childName={child.name} />
 
         <View style={styles.bandCard}>
           <Text style={styles.bandLabel}>{band.ageRange}</Text>
@@ -260,6 +276,15 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   nowName: { fontFamily: fonts.displaySoft, fontSize: 20, color: colors.white, marginTop: 4 },
+  continueBtn: {
+    marginTop: space.sm,
+    backgroundColor: colors.honey,
+    borderRadius: radii.pill,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    alignSelf: 'flex-start',
+  },
+  continueText: { fontFamily: fonts.bodyBold, fontSize: 15, color: colors.ink },
   bandCard: {
     backgroundColor: colors.white,
     borderRadius: radii.lg,
