@@ -24,8 +24,10 @@ import {
 import {
   difficultyLabel,
   exerciseDifficulty,
+  lessonSkills,
   orderedExercises,
   skillLabel,
+  skillLevel,
   unlockedDifficulty,
   weakestSkills,
 } from '@/lib/progress';
@@ -61,7 +63,6 @@ interface Props {
  * Not a top-to-bottom text reader.
  */
 export function TeacherAgent({ lesson, childName, onBack }: Props) {
-  const [turnIndex, setTurnIndex] = useState(0);
   const [busyListen, setBusyListen] = useState(false);
   const [lastHeard, setLastHeard] = useState('');
   const [meadowLine, setMeadowLine] = useState('');
@@ -85,12 +86,38 @@ export function TeacherAgent({ lesson, childName, onBack }: Props) {
   const completed = useAppStore((s) => s.completed);
   const childId = useAppStore((s) => s.activeChildId);
   const mastery = useAppStore((s) => s.mastery ?? {});
+  // Snapshot mastery at session open: mid-session progress must not shift
+  // the plan (e.g. a vanishing review turn) under the child's feet.
+  const [openMastery] = useState(mastery);
 
-  // Spaced review: weakest non-solid skills resurface right after greeting.
-  const plan = useMemo(() => {
-    const weak = childId ? weakestSkills(lesson, childId, mastery, 2) : [];
-    return buildTeachPlan(lesson, childName, weak.map(skillLabel));
-  }, [lesson, childName, childId, mastery]);
+  // Spaced review + auto-level: weakest skills resurface after greeting;
+  // children solid on 2+ skills skip mastered warm-ups and jump in.
+  const { plan, startIndex } = useMemo(() => {
+    const weak = childId ? weakestSkills(lesson, childId, openMastery, 2) : [];
+    const solidCount = childId
+      ? lessonSkills(lesson).filter(
+          (s) => skillLevel(openMastery[`${childId}:${s}`]?.seen ?? 0) === 'solid'
+        ).length
+      : 0;
+    const skip = solidCount >= 2;
+    const p = buildTeachPlan(lesson, childName, weak.map(skillLabel), {
+      skipWarmups: skip,
+    });
+    let start = 0;
+    if (skip && childId) {
+      const target = orderedExercises(lesson).find(
+        (e) => skillLevel(openMastery[`${childId}:${e.skillId}`]?.seen ?? 0) !== 'solid'
+      );
+      if (target) {
+        const idx = p.findIndex(
+          (t) => t.phase === 'exercise_intro' && t.exerciseId === target.id
+        );
+        if (idx > 0) start = idx;
+      }
+    }
+    return { plan: p, startIndex: start };
+  }, [lesson, childName, childId, openMastery]);
+  const [turnIndex, setTurnIndex] = useState(startIndex);
 
   const turn: TeachTurn | undefined = plan[turnIndex];
   const band = getBand(lesson.ageBand);

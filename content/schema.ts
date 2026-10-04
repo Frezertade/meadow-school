@@ -114,6 +114,10 @@ export interface Lesson {
   pathOrder?: number;
   /** Must finish this lesson before unlocking (same band) */
   requiresLessonId?: string;
+  /** Easier on-ramp line offered when the child is stuck (below-level branch) */
+  support?: string;
+  /** Harder twist teased at celebration (above-level branch) */
+  stretch?: string;
 }
 
 export interface CurriculumBand {

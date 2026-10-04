@@ -99,6 +99,14 @@ for (const band of bands) {
       warn(L, `pathOrder ${lesson.pathOrder} has no requiresLessonId — path may unlock out of order`);
     }
 
+    // --- differentiation branches ---
+    if (!lesson.support?.trim()) {
+      warn(L, 'no support line — stuck children get only the hint');
+    }
+    if (!lesson.stretch?.trim()) {
+      warn(L, 'no stretch teaser — breezing children get no harder twist');
+    }
+
     // --- blocks ---
     if (!Array.isArray(lesson.blocks) || lesson.blocks.length === 0) {
       err(L, 'lesson has no blocks');

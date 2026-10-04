@@ -31,14 +31,17 @@ export interface TeachTurn {
 export function buildTeachPlan(
   lesson: Lesson,
   childName: string,
-  reviewLabels: string[] = []
+  reviewLabels: string[] = [],
+  opts: { skipWarmups?: boolean } = {}
 ): TeachTurn[] {
   const name = childName.trim() || 'friend';
   const turns: TeachTurn[] = [];
 
   turns.push({
     phase: 'greet',
-    say: `Hi ${name}! I'm Meadow, your teacher for today. We're learning about ${lesson.title}. Ready to play and learn with me?`,
+    say: opts.skipWarmups
+      ? `Welcome back, ${name}! You've done the warm-ups before — let's jump to the good stuff in ${lesson.title}. Ready?`
+      : `Hi ${name}! I'm Meadow, your teacher for today. We're learning about ${lesson.title}. Ready to play and learn with me?`,
     ask: 'Are you ready?',
     chips: ["I'm ready!", 'Tell me more', 'Need a minute'],
     waitForChild: true,
@@ -114,7 +117,9 @@ export function buildTeachPlan(
 
   turns.push({
     phase: 'celebrate',
-    say: `You finished “${lesson.title}”, ${name}! I'm proud of how you listened and tried. Want to tell me your favorite part?`,
+    say: `You finished “${lesson.title}”, ${name}! I'm proud of how you listened and tried. Want to tell me your favorite part?${
+      lesson.stretch ? ` Next time, a twist: ${lesson.stretch}` : ''
+    }`,
     chips: ['The sounds', 'The drawing', 'The counting', 'All of it!'],
     waitForChild: true,
   });
@@ -197,7 +202,10 @@ export function reactToChildReply(
   }
   if (/hint|help|stuck/.test(r)) {
     const ex = lesson.exercises.find((e) => e.id === turn.exerciseId);
-    if (ex && 'hint' in ex) return `Hint: ${ex.hint}`;
+    // Below-level branch: hint plus the lesson's easier on-ramp when stuck.
+    if (ex && 'hint' in ex) {
+      return `Hint: ${ex.hint}${lesson.support ? ` ${lesson.support}` : ''}`;
+    }
     return `Look at the pictures and try one careful answer. I'm here with you.`;
   }
   if (/why/.test(r)) {

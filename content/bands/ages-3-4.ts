@@ -15,6 +15,8 @@ export const ages34: CurriculumBand = {
       minutes: 10,
       pathOrder: 1,
       summary: 'Meet letter A, then try harder A finds and sounds.',
+      support: 'Let’s make it tiny: just find BIG A together.',
+      stretch: 'Next time: find little a hiding among BIG letters!',
       groundingText: `
 Lesson: Letter A Adventure (ages 3–4). Incremental path: warm-up → stretch → strong.
 Goal: Hear and say the /a/ sound; recognize A; connect A to apple; later find A among more letters and match sound to letter.
@@ -95,6 +97,8 @@ Key facts: Letter A; short sound /a/ as in apple; apple starts with A; capital A
       pathOrder: 2,
       requiresLessonId: 'a34-letters-a',
       summary: 'Count to 3, then compare and match numerals.',
+      support: 'Just touch ONE berry with me: one!',
+      stretch: 'Next time: count all the way to five!',
       groundingText: `
 Lesson: Count to Three (ages 3–4). Warm-up counting → stretch comparing → strong numeral match.
 Numbers: one, two, three. Three means three things. Touch each object once.
@@ -170,6 +174,8 @@ Numbers: one, two, three. Three means three things. Touch each object once.
       pathOrder: 3,
       requiresLessonId: 'a34-count-3',
       summary: 'Name colors, then choose and draw with more detail.',
+      support: 'Just point at the sky with me: blue!',
+      stretch: 'Next time: paint a whole meadow sunset!',
       groundingText: `
 Lesson: Sky and Meadow Colors. Warm-up name colors → stretch choose color → strong fuller scene.
 Sky often blue; grass green; sun yellow.
@@ -228,6 +234,8 @@ Sky often blue; grass green; sun yellow.
       pathOrder: 4,
       requiresLessonId: 'a34-colors-sky',
       summary: 'Calm fire-safety habits, then stronger safe choices.',
+      support: 'Just practice walking calmly to me.',
+      stretch: 'Next time: name our outdoor meeting place from memory!',
       groundingText: `
 Lesson: soft fire safety. Alarms mean find a grown-up and go outside. Never hide. Never go back for toys.
 `,
@@ -287,6 +295,8 @@ Lesson: soft fire safety. Alarms mean find a grown-up and go outside. Never hide
       pathOrder: 5,
       requiresLessonId: 'a34-fire-safety',
       summary: 'Hear rhyming pairs, finish a nursery line, draw a rhyme.',
+      support: 'Just echo me: cat… hat!',
+      stretch: 'Next time: invent your own rhyme pair!',
       groundingText: `
 Lesson: Animals That Rhyme (ages 3–4). Warm-up hear rhymes → stretch finish a rhyme → strong draw a pair.
 Goal: Hear that cat/hat share ending sounds; finish a familiar rhyming line; later make own rhymes.
@@ -371,6 +381,8 @@ Do NOT teach: spelling or letter names beyond echo play.
       pathOrder: 6,
       requiresLessonId: 'a34-rhymes-animals',
       summary: 'Count to 5 by touching, order 1–5, find one more than 4.',
+      support: 'Just count to three with me first.',
+      stretch: 'Next time: count ten garden seeds!',
       groundingText: `
 Lesson: Five Little Ducks (ages 3–4). Warm-up count to 5 → stretch order 1–5 → strong one more than 4.
 Goal: Count 1–5 touching each object once; know 5 is more than 3; say what comes after 4.
@@ -440,6 +452,8 @@ Do NOT teach: adding two groups (that comes at age 5).
       pathOrder: 7,
       requiresLessonId: 'a34-count-5',
       summary: 'Name circle, square, triangle; sort by color.',
+      support: 'Just find something round with me.',
+      stretch: 'Next time: sort shapes AND colors together!',
       groundingText: `
 Lesson: Round and Pointy Shapes (ages 3–4). Warm-up circle → stretch triangle vs square → strong sort by color.
 Goal: Name circle, square, triangle; find them in the room; put same colors together.
@@ -518,6 +532,8 @@ Do NOT teach: rectangle, oval, or side counting beyond 4.
       pathOrder: 8,
       requiresLessonId: 'a34-shapes',
       summary: 'Tell living from non-living; meet neighbor helpers.',
+      support: 'Just point at one tree with me.',
+      stretch: 'Next time: find three living things on a walk!',
       groundingText: `
 Lesson: Living or Not Walk (ages 3–4). Warm-up alive vs not → stretch plant needs → strong helpers.
 Goal: Say trees and flowers are alive and growing; rocks and chairs are not; name one neighbor helper.
@@ -603,6 +619,8 @@ Do NOT teach: death, scary weather, or anything that could frighten.
       pathOrder: 9,
       requiresLessonId: 'a34-nature-walk',
       summary: 'Feel a steady beat, hear loud vs soft, draw an instrument.',
+      support: 'Just clap with me: clap… clap…',
+      stretch: 'Next time: lead the pattern yourself!',
       groundingText: `
 Lesson: Clap the Beat (ages 3–4). Warm-up sing back → stretch loud vs soft → strong copy a pattern.
 Goal: Clap a steady beat; show loud vs soft; copy clap-clap-stomp.
@@ -679,6 +697,8 @@ Do NOT teach: written notes or instrument names beyond what we play.
       pathOrder: 10,
       requiresLessonId: 'a34-songs-clap',
       summary: 'Practice handwashing order and name daily healthy steps.',
+      support: 'Just rub-rub your hands with me.',
+      stretch: 'Next time: teach a toy the steps in order!',
       groundingText: `
 Lesson: Wash, Brush, Sleep (ages 3–4). Warm-up when to wash → stretch wash in order → strong draw the habit.
 Goal: Say hands wash before eating; order water-soap-rinse; name brushing teeth and sleep as healthy steps.

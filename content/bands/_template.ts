@@ -11,6 +11,8 @@ import type { Lesson } from '../schema';
  *    written here, Meadow must not say it.
  * 5. Blocks: one small bite each. Every `teach`/`story` block needs `tutorCue` —
  *    a stage direction for Meadow's voice, gestures, and pacing (NOT a summary).
+ * 5b. Differentiation: write `support` (easier on-ramp when stuck) and
+ *    `stretch` (harder twist teased at celebration) — one line each.
  * 6. Exercises: at least one difficulty-1 warm-up; climb 1 → 2 → 3.
  *    Every exercise needs a `skillId` slug from content/scope.md.
  *    reading/math: `answer` MUST appear in `choices`; always write `hint`.
@@ -36,6 +38,8 @@ export const TEMPLATE_LESSON: Lesson = {
   pathOrder: 99,
   requiresLessonId: 'previous-lesson-id',
   summary: 'One line: what the child will be able to do.',
+  support: 'Easier on-ramp offered when the child is stuck.',
+  stretch: 'Harder twist teased at celebration for breezing children.',
   groundingText: `
 Lesson: <title> (age band). Incremental path: warm-up → stretch → strong.
 Goal: <observable skill, e.g. "Blend three sounds into a CVC word">.
