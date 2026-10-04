@@ -42,8 +42,10 @@ export function DrawingCanvas({ prompt, instruction, onComplete, successMessage 
   };
 
   const finishStroke = useCallback(() => {
-    if (currentRef.current.length > 1) {
-      setStrokes((s) => [...s, currentRef.current]);
+    // Commit current path even if it's a tiny stroke (dot). Some web browsers
+    // emit very few move events before release.
+    if (currentRef.current.length >= 1) {
+      setStrokes((s) => [...s, [...currentRef.current]]);
     }
     currentRef.current = [];
     setCurrent([]);
@@ -65,6 +67,7 @@ export function DrawingCanvas({ prompt, instruction, onComplete, successMessage 
       },
       onPanResponderRelease: finishStroke,
       onPanResponderTerminate: finishStroke,
+      onPanResponderEnd: finishStroke,
     })
   ).current;
 
