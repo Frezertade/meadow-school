@@ -1,5 +1,9 @@
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
 import {
   Platform,
   Pressable,
@@ -13,6 +17,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { curriculumBands, getBand } from '@/content';
 import { PA_ELEMENTARY_SUBJECTS, PA_NOTES } from '@/content/pa-alignment';
 import type { AgeBand } from '@/content/schema';
+import type { ChildProfile } from '@/lib/store';
+import { buildDigest } from '@/lib/digest';
+import { buildPortfolioHtml } from '@/lib/portfolio';
 import { lessonSkills, skillLabel, skillLevel } from '@/lib/progress';
 import { colors, fonts, radii, space } from '@/lib/theme';
 import { useAppStore } from '@/lib/store';
@@ -56,6 +63,15 @@ export default function ParentScreen() {
   const hasPin = useAppStore((s) => s.hasPin);
   const ensurePin = useAppStore((s) => s.ensurePin);
   const mastery = useAppStore((s) => s.mastery ?? {});
+  const stars = useAppStore((s) => s.stars ?? {});
+  const restoreBackup = useAppStore((s) => s.restoreBackup);
+  const [backupMsg, setBackupMsg] = useState('');
+  const [portfolioMsg, setPortfolioMsg] = useState('');
+
+  const digest = useMemo(
+    () => buildDigest(children, logs, mastery),
+    [children, logs, mastery]
+  );
 
   useEffect(() => {
     hasPin().then((exists) => setNeedsSetup(!exists));
@@ -84,6 +100,163 @@ export default function ParentScreen() {
     setParentUnlocked(false);
     setPin('');
     router.back();
+  };
+
+  const downloadWebFile = (name: string, text: string, mime: string) => {
+    const g = globalThis as unknown as {
+      Blob?: new (parts: string[], opts: { type: string }) => { size: number };
+      URL?: { createObjectURL(o: unknown): string; revokeObjectURL(u: string): void };
+      document?: {
+        createElement(tag: string): { href: string; download: string; click(): void };
+        body: { appendChild(e: unknown): void; removeChild(e: unknown): void };
+      };
+    };
+    if (!g.Blob || !g.URL || !g.document) return false;
+    const url = g.URL.createObjectURL(new g.Blob([text], { type: mime }));
+    const a = g.document.createElement('a');
+    a.href = url;
+    a.download = name;
+    g.document.body.appendChild(a);
+    a.click();
+    g.document.body.removeChild(a);
+    setTimeout(() => g.URL?.revokeObjectURL(url), 5000);
+    return true;
+  };
+
+  const printPortfolio = async (childId: string) => {
+    setPortfolioMsg('');
+    try {
+      const c = children.find((k) => k.id === childId);
+      if (!c) return;
+      const band = getBand(c.ageBand);
+      const lessons = band.lessons.map((l) => {
+        const doneIds = completed[`${c.id}:${l.id}`] || [];
+        return {
+          title: l.title,
+          subject: l.subject,
+          minutes: l.minutes,
+          paSubjects: l.pa.statuteSubjects,
+          status: (doneIds.length >= l.exercises.length ? 'finished' : 'started') as
+            | 'finished'
+            | 'started',
+        };
+      });
+      const skills = [...new Set(band.lessons.flatMap((l) => lessonSkills(l)))].map(
+        (skillId) => {
+          const seen = mastery[`${c.id}:${skillId}`]?.seen ?? 0;
+          return { label: skillLabel(skillId), level: skillLevel(seen), seen };
+        }
+      );
+      const logLines = logs
+        .filter((l) => l.childId === c.id)
+        .slice(0, 20)
+        .map((l) => `${new Date(l.at).toLocaleDateString()} — ${l.detail}`);
+      const html = buildPortfolioHtml({
+        childName: c.name,
+        bandLabel: `${band.label} · ${band.ageRange}`,
+        lessons,
+        skills,
+        logLines,
+        generatedAt: new Date().toLocaleDateString(),
+      });
+      if (Platform.OS === 'web') {
+        downloadWebFile(`${c.name}-portfolio.html`, html, 'text/html');
+        setPortfolioMsg('Portfolio downloaded — open it and print to PDF from the browser.');
+        return;
+      }
+      const { uri } = await Print.printToFileAsync({ html });
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri, { mimeType: 'application/pdf' });
+        setPortfolioMsg('Portfolio PDF ready to save or send.');
+      } else {
+        setPortfolioMsg(`Portfolio saved at ${uri}`);
+      }
+    } catch {
+      setPortfolioMsg('Could not make the portfolio. Try again.');
+    }
+  };
+
+  const exportBackup = async () => {
+    setBackupMsg('');
+    try {
+      const data = JSON.stringify(
+        {
+          version: 1,
+          exportedAt: new Date().toISOString(),
+          children,
+          completed,
+          mastery,
+          stars,
+          logs,
+        },
+        null,
+        2
+      );
+      const name = `meadow-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      if (Platform.OS === 'web') {
+        if (downloadWebFile(name, data, 'application/json')) {
+          setBackupMsg('Backup downloaded.');
+        } else {
+          setBackupMsg('Download is not available in this browser.');
+        }
+        return;
+      }
+      const uri = `${(FileSystem as { cacheDirectory?: string }).cacheDirectory ?? ''}${name}`;
+      await FileSystem.writeAsStringAsync(uri, data);
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri);
+        setBackupMsg('Backup shared — save it somewhere safe.');
+      } else {
+        setBackupMsg(`Backup saved at ${uri}`);
+      }
+    } catch {
+      setBackupMsg('Could not export the backup. Try again.');
+    }
+  };
+
+  const importBackup = async () => {
+    setBackupMsg('');
+    try {
+      const res = await DocumentPicker.getDocumentAsync({
+        type: 'application/json',
+        copyToCacheDirectory: true,
+      });
+      if (res.canceled || !res.assets?.[0]) return;
+      const uri = res.assets[0].uri;
+      const text =
+        Platform.OS === 'web'
+          ? await (await fetch(uri)).text()
+          : await FileSystem.readAsStringAsync(uri);
+      const data = JSON.parse(text) as {
+        children?: unknown;
+        completed?: Record<string, string[]>;
+        mastery?: Record<string, { seen: number; lastSeen: string }>;
+        stars?: Record<string, true>;
+        logs?: never[];
+      };
+      if (!data || !Array.isArray(data.children) || data.children.length === 0) {
+        setBackupMsg('That file is not a Meadow backup.');
+        return;
+      }
+      const kids = data.children as Array<{ id?: unknown; name?: unknown; ageBand?: unknown }>;
+      const valid = kids.every(
+        (k) => typeof k.id === 'string' && typeof k.name === 'string' && typeof k.ageBand === 'string'
+      );
+      if (!valid) {
+        setBackupMsg('That file is not a Meadow backup.');
+        return;
+      }
+      restoreBackup({
+        children: kids as ChildProfile[],
+        completed: data.completed ?? {},
+        mastery: data.mastery ?? {},
+        stars: data.stars ?? {},
+        logs: Array.isArray(data.logs) ? data.logs : [],
+      });
+      setBackupMsg('Backup restored.');
+    } catch {
+      setBackupMsg('Could not read that file. Try again.');
+    }
   };
 
   if (!parentUnlocked) {
@@ -134,8 +307,7 @@ export default function ParentScreen() {
       </Text>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Who is learning</Text>
-        <Text style={styles.body}>
+        <Text style={styles.cardTitle}>Who is learning</Text>        <Text style={styles.body}>
           {activeLearning
             ? `${activeLearning.childName}${
                 activeLearning.lessonTitle
@@ -144,6 +316,27 @@ export default function ParentScreen() {
               }`
             : 'No active session yet — child chips start a session.'}
         </Text>
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>This week</Text>
+        <Text style={styles.body}>
+          {digest.lessonsFinished} finished · {digest.lessonsOpened} opened · about{' '}
+          {digest.minutes} lesson minutes
+        </Text>
+        {digest.skillsPracticed.length > 0 && (
+          <Text style={styles.body}>Practiced: {digest.skillsPracticed.join(', ')}</Text>
+        )}
+        {digest.focus ? (
+          <Text style={styles.body}>
+            Keep growing ({digest.focus.childName} · {digest.focus.skill}):{' '}
+            {digest.focus.activity}
+          </Text>
+        ) : (
+          <Text style={styles.body}>
+            No practice yet this week — open any lesson to start.
+          </Text>
+        )}
       </View>
 
       <View style={styles.card}>
@@ -293,6 +486,50 @@ export default function ParentScreen() {
             <Text style={styles.logKind}>{log.kind}</Text>
           </View>
         ))}
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Portfolio (PA paperwork)</Text>
+        <Text style={styles.body}>
+          One tap per child: lessons with statute tags, skill levels, and recent log —
+          {Platform.OS === 'web' ? ' downloads as HTML, then print to PDF.' : ' saves or shares as PDF.'}
+        </Text>
+        {children.map((c) => (
+          <Pressable
+            key={c.id}
+            style={styles.primary}
+            onPress={() => void printPortfolio(c.id)}
+            accessibilityRole="button"
+            accessibilityLabel={`Make portfolio for ${c.name}`}
+          >
+            <Text style={styles.primaryText}>Portfolio: {c.name}</Text>
+          </Pressable>
+        ))}
+        {!!portfolioMsg && <Text style={styles.progress}>{portfolioMsg}</Text>}
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Backup</Text>
+        <Text style={styles.body}>
+          Save every profile, star, skill, and log to a file. Restore it on a new device.
+        </Text>
+        <Pressable
+          style={styles.primary}
+          onPress={() => void exportBackup()}
+          accessibilityRole="button"
+          accessibilityLabel="Export backup file"
+        >
+          <Text style={styles.primaryText}>Export backup</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.primary, { backgroundColor: colors.meadow }]}
+          onPress={() => void importBackup()}
+          accessibilityRole="button"
+          accessibilityLabel="Import backup file"
+        >
+          <Text style={styles.primaryText}>Import backup</Text>
+        </Pressable>
+        {!!backupMsg && <Text style={styles.progress}>{backupMsg}</Text>}
       </View>
 
       <View style={styles.card}>

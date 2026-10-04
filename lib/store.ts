@@ -96,6 +96,13 @@ interface ProgressState {
   isLessonComplete: (lessonId: string, exerciseCount: number) => boolean;
   getCompletedIds: (lessonId: string) => string[];
   setParentUnlocked: (v: boolean) => void;
+  restoreBackup: (data: {
+    children: ChildProfile[];
+    completed: Record<string, string[]>;
+    mastery: Record<string, SkillMastery>;
+    stars: Record<string, true>;
+    logs: LearningLog[];
+  }) => void;
   setVoiceEnabled: (v: boolean) => void;
   setMeadowVoiceId: (v: MeadowVoiceChoice) => void;
   setOpenaiKey: (key: string | null) => Promise<void>;
@@ -349,6 +356,22 @@ export const useAppStore = create<ProgressState>()(
       },
 
       setParentUnlocked: (v) => set({ parentUnlocked: v }),
+
+      restoreBackup: (data) => {
+        const firstChild = data.children[0];
+        if (!firstChild) return;
+        set({
+          children: data.children,
+          activeChildId: data.children.some((c) => c.id === get().activeChildId)
+            ? get().activeChildId
+            : firstChild.id,
+          completed: data.completed,
+          mastery: data.mastery,
+          stars: data.stars,
+          logs: data.logs.slice(0, MAX_LOGS),
+          activeLearning: null,
+        });
+      },
 
       ensurePin: async (pin) => {
         await secureSet(PIN_KEY, pin);
