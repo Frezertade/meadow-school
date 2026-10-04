@@ -10,6 +10,7 @@ interface Props {
   exercise: SequenceExerciseType;
   childName: string;
   onComplete: () => void;
+  onWrong?: () => void;
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -25,7 +26,7 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-export function SequenceExercise({ exercise, childName, onComplete }: Props) {
+export function SequenceExercise({ exercise, childName, onComplete, onWrong }: Props) {
   // Shuffle once per exercise — never reshuffle under tapping fingers
   const offered = useMemo(() => shuffle(exercise.items), [exercise]);
   const [picked, setPicked] = useState<string[]>([]);
@@ -48,6 +49,7 @@ export function SequenceExercise({ exercise, childName, onComplete }: Props) {
         if (voiceEnabled) await meadowSpeak(narrateCorrect(childName), { enabled: true });
       } else {
         setStatus('wrong');
+        onWrong?.();
         if (voiceEnabled) await meadowSpeak(narrateWrong(exercise.hint), { enabled: true });
         setPicked([]);
       }

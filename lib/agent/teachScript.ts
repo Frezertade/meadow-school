@@ -155,8 +155,9 @@ export function buildTeachPlan(
 }
 
 function conversationalBite(block: LessonBlock, lesson: Lesson): string {
-  // Short teacher talk — not dumping the full block
-  const raw = (block.tutorCue || block.text).trim();
+  // Short teacher talk — the TEACHING (block.text), never the stage
+  // direction (tutorCue). Meadow performs; she does not read directions aloud.
+  const raw = (block.text || block.tutorCue || '').trim();
   const first = raw.split(/(?<=[.!?])\s+/)[0] || raw;
   const lead = block.title ? `${block.title}. ` : '';
   if (lesson.subject === 'english') {

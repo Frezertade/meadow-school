@@ -31,7 +31,7 @@ Premium kid voice = add a TTS provider later (parent-configured key). Mic qualit
 ## Stack
 
 - Expo Router: web + iOS
-- Teacher flow: `components/TeacherAgent.tsx` + `lib/agent/teachScript.ts` + `lib/agent/tutor.ts`
+- Teacher flow: `components/LessonShow.tsx` + `lib/useTeachSession.ts` + `lib/agent/teachScript.ts` + `lib/agent/director.ts` (mascot decides each moment; never reads the screen)
 - Voice out: `lib/voice/meadowVoice.ts` + `lib/voice/supertonic.web.ts` (Supertonic F2 on web, speechSynthesis/expo-speech fallback)
 - Voice in: `lib/voice/listen.ts` (Web Speech Recognition)
 - Progress + logs + optional OpenAI key: `lib/store.ts`

@@ -11,9 +11,10 @@ interface Props {
   exercise: ListenSayExerciseType;
   childName: string;
   onComplete: () => void;
+  onWrong?: () => void;
 }
 
-export function ListenSayExercise({ exercise, childName, onComplete }: Props) {
+export function ListenSayExercise({ exercise, childName, onComplete, onWrong }: Props) {
   const [heard, setHeard] = useState(false);
   const [listening, setListening] = useState(false);
   const [status, setStatus] = useState<'idle' | 'correct' | 'wrong'>('idle');
@@ -34,6 +35,7 @@ export function ListenSayExercise({ exercise, childName, onComplete }: Props) {
       if (voiceEnabled) await meadowSpeak(narrateCorrect(childName), { enabled: true });
     } else {
       setStatus('wrong');
+      onWrong?.();
       if (voiceEnabled) await meadowSpeak(narrateWrong(exercise.hint), { enabled: true });
     }
   };

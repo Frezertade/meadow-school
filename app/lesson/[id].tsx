@@ -1,6 +1,6 @@
 import { Redirect, useLocalSearchParams, router } from 'expo-router';
 import { ScrollView } from 'react-native';
-import { TeacherAgent } from '@/components/TeacherAgent';
+import { LessonShow } from '@/components/LessonShow';
 import { getLesson } from '@/content';
 import { useActiveChild } from '@/lib/store';
 
@@ -17,7 +17,7 @@ export default function LessonScreen() {
       contentContainerStyle={{ flexGrow: 1 }}
       keyboardShouldPersistTaps="handled"
     >
-      <TeacherAgent
+      <LessonShow
         lesson={lesson}
         childName={child.name}
         onBack={() => router.back()}

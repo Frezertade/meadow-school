@@ -10,9 +10,10 @@ interface Props {
   exercise: ReadingExerciseType;
   childName: string;
   onComplete: () => void;
+  onWrong?: () => void;
 }
 
-export function ReadingExercise({ exercise, childName, onComplete }: Props) {
+export function ReadingExercise({ exercise, childName, onComplete, onWrong }: Props) {
   const [selected, setSelected] = useState<string | null>(null);
   const [status, setStatus] = useState<'idle' | 'correct' | 'wrong'>('idle');
   const voiceEnabled = useAppStore((s) => s.voiceEnabled);
@@ -33,6 +34,7 @@ export function ReadingExercise({ exercise, childName, onComplete }: Props) {
       if (voiceEnabled) await meadowSpeak(narrateCorrect(childName), { enabled: true });
     } else {
       setStatus('wrong');
+      onWrong?.();
       if (voiceEnabled) await meadowSpeak(narrateWrong(exercise.hint), { enabled: true });
     }
   };

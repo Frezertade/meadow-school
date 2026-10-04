@@ -10,7 +10,7 @@ Private family PA home-ed app (Expo web + iOS). Learners ages 3–7. Read root `
 
 ## Must follow
 
-- Meadow is a **conversational teacher agent** (`TeacherAgent` + `teachScript`), not a page reader.
+- Meadow is a **smart focused agentic mascot** (`LessonShow` + `useTeachSession` + `director`): she decides each moment, performs short lines, and pulls drifters back to the mission. Never a screen reader.
 - Keep answers grounded in lesson `groundingText` + exercises.
 - Voice out via `lib/voice/meadowVoice.ts` + Supertonic on web (`lib/voice/supertonic.web.ts`, F2 default); mic via `lib/voice/listen.ts` when available.
 - Lessons in `content/bands/*.ts` with PA tags; exercises use difficulty 1→2→3.

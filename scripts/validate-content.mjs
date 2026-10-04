@@ -142,7 +142,7 @@ for (const band of bands) {
           err(X, `skillId "${ex.skillId}" must be a lowercase slug (letters, digits, hyphens)`);
         }
         if (!RENDERED_EXERCISE_KINDS.has(ex.kind)) {
-          err(X, `kind "${ex.kind}" has no UI renderer (TeacherAgent/LessonPlayer only render reading, math, drawing)`);
+          err(X, `kind "${ex.kind}" has no UI renderer (LessonShow renders reading, math, drawing, listen-say, sequence)`);
           continue;
         }
         const d = ex.difficulty ?? 1;

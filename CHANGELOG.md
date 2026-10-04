@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.2.0 — 2026-10-04 — Meadow Show
+
+Video-style animated lessons with an agentic mascot. Replaces the static
+lesson players (`TeacherAgent`, `LessonPlayer` removed).
+
+**Meadow Show player**
+- Lessons play like episodes: scenes auto-play with big captions, transport bar
+  (play/pause, scene progress with play-break markers, replay), exercises as
+  🎮 play breaks, star-burst + fanfare finale
+- Animated Meadow mascot (Reanimated): bobs, cheers, thinks, wiggles, celebrates
+- Mascot director (`lib/agent/director.ts`): decides each moment's mood, nudges
+  drifting children back to the mission after 20s idle, mirrors right/wrong
+- Voice effects per moment (excited celebration, silly break) + synthesized
+  sound-effect stingers, zero new dependencies
+- Speaks the teaching, never stage directions (`tutorCue` no longer read aloud)
+
 ## 1.1.0 — 2026-10-04 — Meadow v2
 
 Teacher-led learning: 31 lessons, real mastery tracking, parent paperwork.
