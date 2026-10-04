@@ -13,6 +13,7 @@ import { difficultyLabel, exerciseDifficulty } from '@/lib/progress';
 import { colors, fonts, radii, space } from '@/lib/theme';
 import { MeadowMascot } from '@/components/MeadowMascot';
 import { StarBurst } from '@/components/StarBurst';
+import { SceneVisual } from '@/components/SceneVisual';
 import { Celebration } from '@/components/Celebration';
 import { DrawingCanvas } from '@/components/exercises/DrawingCanvas';
 import { MathExercise } from '@/components/exercises/MathExercise';
@@ -50,7 +51,10 @@ export function LessonShow({ lesson, childName, onBack }: Props) {
   const markers = s.plan
     .map((t, i) => ({ t, i }))
     .filter(({ t }) => t.phase === 'exercise_intro')
-    .map(({ i }) => Math.round(((i + 1) / Math.max(1, s.plan.length)) * 100));
+    .map(({ i }) => ({
+      index: i,
+      left: Math.round(((i + 1) / Math.max(1, s.plan.length)) * 100),
+    }));
 
   return (
     <View style={styles.root}>
@@ -74,8 +78,8 @@ export function LessonShow({ lesson, childName, onBack }: Props) {
         {/* Stage */}
         <LinearGradient colors={backdrop.bg} style={styles.stage}>
           {turn?.phase === 'celebrate' && <StarBurst />}
-          <Text style={styles.backdropEmoji}>{backdrop.emoji}</Text>
-          <MeadowMascot key={s.direction.mood} mood={s.direction.mood} size={112} />
+          <SceneVisual lesson={lesson} turn={turn} exercise={s.currentExercise} />
+          <MeadowMascot key={s.direction.mood} mood={s.direction.mood} size={104} />
           <Text style={styles.lessonTitle}>{lesson.title}</Text>
         </LinearGradient>
 
@@ -109,8 +113,16 @@ export function LessonShow({ lesson, childName, onBack }: Props) {
                     { width: `${Math.round((sceneNo / Math.max(1, s.plan.length)) * 100)}%` },
                   ]}
                 />
-                {markers.map((left, i) => (
-                  <View key={i} style={[styles.marker, { left: `${left}%` }]} />
+                {markers.map((m, i) => (
+                  <Pressable
+                    key={i}
+                    onPress={() => s.seekTo(m.index)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Jump to play break ${i + 1}`}
+                    style={[styles.markerHit, { left: `${m.left}%` }]}
+                  >
+                    <View style={styles.marker} />
+                  </Pressable>
                 ))}
               </View>
             </View>
@@ -296,7 +308,6 @@ const styles = StyleSheet.create({
     gap: 6,
     overflow: 'hidden',
   },
-  backdropEmoji: { fontSize: 40, opacity: 0.9 },
   lessonTitle: { fontFamily: fonts.display, fontSize: 24, color: colors.ink, textAlign: 'center' },
   captions: {
     backgroundColor: colors.ink,
@@ -323,9 +334,16 @@ const styles = StyleSheet.create({
   trackWrap: { flex: 1, paddingVertical: 8 },
   track: { height: 10, borderRadius: radii.pill, backgroundColor: colors.paperDeep, overflow: 'visible' },
   fill: { height: 10, borderRadius: radii.pill, backgroundColor: colors.meadow },
-  marker: {
+  markerHit: {
     position: 'absolute',
-    top: -3,
+    top: -10,
+    width: 30,
+    height: 30,
+    marginLeft: -15,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  marker: {
     width: 6,
     height: 16,
     borderRadius: 3,

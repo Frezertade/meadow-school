@@ -118,6 +118,8 @@ export interface Lesson {
   support?: string;
   /** Harder twist teased at celebration (above-level branch) */
   stretch?: string;
+  /** Big on-stage visual for the Show (emoji/letters, e.g. "Aa 🍎") */
+  spotlight?: string;
 }
 
 export interface CurriculumBand {

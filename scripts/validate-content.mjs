@@ -106,6 +106,9 @@ for (const band of bands) {
     if (!lesson.stretch?.trim()) {
       warn(L, 'no stretch teaser — breezing children get no harder twist');
     }
+    if (!lesson.spotlight?.trim()) {
+      warn(L, 'no spotlight — the Show stage falls back to a generic backdrop');
+    }
 
     // --- blocks ---
     if (!Array.isArray(lesson.blocks) || lesson.blocks.length === 0) {

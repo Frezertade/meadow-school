@@ -135,7 +135,7 @@ export function useTeachSession({ lesson, childName, onBack }: Props) {
   const neuralAnnounced = useRef(false);
   const lastLevel = useRef(1);
   const lastActive = useRef(Date.now());
-  const nudgedTurn = useRef(-1);
+  const nudgedLesson = useRef<string | null>(null);
   const autoplayTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const playingRef = useRef(true);
   playingRef.current = playing;
@@ -235,6 +235,19 @@ export function useTeachSession({ lesson, childName, onBack }: Props) {
     setTurnIndex((i) => Math.min(i + 1, plan.length - 1));
   }, [plan.length, touch]);
 
+  /** Jump to any scene (transport markers). Gating still applies inside. */
+  const seekTo = useCallback(
+    (index: number) => {
+      touch();
+      stopListening();
+      void stopVoice();
+      if (autoplayTimer.current) clearTimeout(autoplayTimer.current);
+      setLastResult(null);
+      setTurnIndex(Math.max(0, Math.min(index, plan.length - 1)));
+    },
+    [plan.length, touch]
+  );
+
   // Autoplay cinematic scenes; idle-nudge drifting children.
   useEffect(() => {
     if (autoplayTimer.current) clearTimeout(autoplayTimer.current);
@@ -275,11 +288,11 @@ export function useTeachSession({ lesson, childName, onBack }: Props) {
     [turn, lesson, idleMs, thinking, lastResult]
   );
 
-  // One gentle pull back to the mission per drifted turn.
+  // One gentle pull back to the mission per lesson — never naggy.
   useEffect(() => {
-    if (!direction.focusLine || nudgedTurn.current === turnIndex) return;
+    if (!direction.focusLine || nudgedLesson.current === lesson.id) return;
     if (!playingRef.current) return;
-    nudgedTurn.current = turnIndex;
+    nudgedLesson.current = lesson.id;
     void speakLine(direction.focusLine, { phase: turn?.phase ?? 'check', stinger: null });
   }, [direction.focusLine, turnIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -370,6 +383,15 @@ export function useTeachSession({ lesson, childName, onBack }: Props) {
   }, [touch]);
 
   const startTeacher = () => {
+    // Drop focus from the start overlay so screen readers don't get trapped.
+    const g = globalThis as unknown as {
+      document?: { activeElement?: { blur?: () => void } | null };
+    };
+    try {
+      g.document?.activeElement?.blur?.();
+    } catch {
+      // ignore
+    }
     unlockAndSpeakNow(turn?.say || `Hi ${childName}! I'm Meadow, your teacher.`);
     unlockSfx();
     setNeedsTap(false);
@@ -415,6 +437,7 @@ export function useTeachSession({ lesson, childName, onBack }: Props) {
     play,
     replay,
     advance,
+    seekTo,
     handleChildText,
     onChip,
     onMic,

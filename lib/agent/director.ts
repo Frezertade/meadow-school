@@ -27,8 +27,8 @@ export interface Direction {
   focusLine?: string;
 }
 
-/** A drifted child gets one gentle pull back to the mission. */
-export const IDLE_NUDGE_MS = 20_000;
+/** A drifted child gets one gentle pull back to the mission per lesson. */
+export const IDLE_NUDGE_MS = 30_000;
 
 /**
  * Meadow's agentic brain: every moment maps to a mood + optional action.

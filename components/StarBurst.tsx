@@ -1,11 +1,12 @@
-import { useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { useEffect, useMemo } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withDelay,
   withTiming,
 } from 'react-native-reanimated';
+import { prefersReducedMotion } from '@/lib/reducedMotion';
 
 const COUNT = 12;
 
@@ -32,6 +33,15 @@ function StarParticle({ angle, delay }: { angle: number; delay: number }) {
 
 /** One-shot celebration burst — mounted when the finale starts. */
 export function StarBurst() {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const still = useMemo(() => prefersReducedMotion(), []);
+  if (still) {
+    return (
+      <View style={styles.field} pointerEvents="none">
+        <Text style={styles.calm}>⭐</Text>
+      </View>
+    );
+  }
   return (
     <View style={styles.field} pointerEvents="none">
       {Array.from({ length: COUNT }, (_, i) => (
@@ -48,4 +58,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   star: { position: 'absolute', fontSize: 26 },
+  calm: { fontSize: 64 },
 });

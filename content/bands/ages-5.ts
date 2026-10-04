@@ -17,6 +17,7 @@ export const ages5: CurriculumBand = {
       summary: 'Say six letter sounds that unlock CVC blending.',
       support: 'Just echo one sound: /mmm/.',
       stretch: 'Next time: blend the sounds into a word!',
+      spotlight: 'Cc Ss Mm',
       groundingText: `
 Lesson: First Sounds (age 5 / kindergarten path). Warm-up hear sounds → stretch match sound to letter → strong say the sound.
 Goal: Say the sounds /c/ /a/ /t/ /s/ /m/ /p/ on sight; later blend them into words.
@@ -97,6 +98,7 @@ Do NOT teach: blending full words yet (next lesson) or silent letters.
       summary: 'Blend /c/ /a/ /t/ into cat.',
       support: 'Just say the first sound: /c/.',
       stretch: 'Next time: read a whole -at word alone!',
+      spotlight: '🐱',
       groundingText: `
 Lesson: Sound Out cat (age 5 / kindergarten path). Incremental path: warm-up → stretch → strong.
 Goal: Blend three sounds into the word "cat"; recognize letters c, a, t; later blend new CVC words and use rhymes.
@@ -176,6 +178,7 @@ Key facts:
       summary: 'Blend d/o/g; meet the -og family; hear first sounds.',
       support: 'Just bark the word: dog!',
       stretch: 'Next time: read log and frog too!',
+      spotlight: '🐶',
       groundingText: `
 Lesson: Sound Out dog (age 5). Warm-up say dog → stretch -og family → strong first sounds.
 Goal: Blend /d/ /o/ /g/ into "dog"; read log and frog as -og family; say the first sound of a word.
@@ -257,6 +260,7 @@ Do NOT teach: silent-e words (like home) or blends like dr- yet.
       summary: 'Count to 10 and compare more / less.',
       support: 'Just count to five with me first.',
       stretch: 'Next time: add small groups together!',
+      spotlight: '🌱🌱🌱🌱🌱🌱🌱🌱🌱🌱',
       groundingText: `
 Lesson: Ten Garden Seeds (age 5). Incremental path: warm-up → stretch → strong.
 Goal: Count to 10; know that 10 is one more than 9; compare small sets; later find one more and compare three groups.
@@ -339,6 +343,7 @@ Key facts:
       summary: 'Put small groups together; peek at counting to 20.',
       support: 'Just hold up two fingers with me.',
       stretch: 'Next time: add all the way to ten!',
+      spotlight: '🍎🍎🍎',
       groundingText: `
 Lesson: Add Up to Five (age 5). Warm-up add 2+1 → stretch add 3+2 → strong count past 10.
 Goal: Combine two small groups to 5; say "2 and 1 more makes 3"; count to 20 with help.
@@ -411,6 +416,7 @@ Do NOT teach: written + signs or sums above 5.
       summary: 'Copy, extend, and draw AB patterns.',
       support: 'Just copy two: red, blue.',
       stretch: 'Next time: invent an ABC pattern!',
+      spotlight: '🔴🔵🔴🔵',
       groundingText: `
 Lesson: Copy My Pattern (age 5). Warm-up order red-blue → stretch pick what comes next → strong draw own pattern.
 Goal: Copy and extend AB patterns; say what repeats; make a new AB pattern.
@@ -479,6 +485,7 @@ Do NOT teach: ABC/AAB patterns (stretch only if the child begs).
       summary: 'Learn we live in Pennsylvania in a gentle, concrete way.',
       support: 'Just say the first part: Penn…',
       stretch: 'Next time: find Pennsylvania on a map!',
+      spotlight: '🗺️⭐',
       groundingText: `
 Lesson: Our State Pennsylvania (age 5). Incremental path: warm-up → stretch → strong.
 Goal: Say the name Pennsylvania; know it is our state; notice a simple map idea (home is here); later place Pennsylvania in the United States and draw local home.
@@ -560,6 +567,7 @@ Key facts:
       summary: 'Name seasons in order; match weather to clothing.',
       support: 'Just show me shivering for winter!',
       stretch: 'Next time: dress a friend for every season!',
+      spotlight: '🌸☀️🍂❄️',
       groundingText: `
 Lesson: Dress for the Weather (age 5). Warm-up winter vs summer → stretch order the seasons → strong dress for rain.
 Goal: Name Spring, Summer, Fall, Winter in order; match hot/cold/rainy to clothing.
@@ -630,6 +638,7 @@ Do NOT teach: temperature numbers or storm safety beyond dressing warmly.
       summary: 'Name feelings; choose kind actions; draw kindness.',
       support: 'Just show me a happy face.',
       stretch: 'Next time: solve a sharing problem!',
+      spotlight: '💛',
       groundingText: `
 Lesson: Kind Hands, Kind Words (age 5). Warm-up help a friend → stretch name the feeling → strong draw kindness.
 Goal: Name happy, sad, mad, scared; choose the kind action; use words for big feelings.
@@ -698,6 +707,7 @@ Do NOT teach: shaming language; all feelings are allowed, actions have limits.
       summary: 'Draw a scene, tell its story, spot a spelled word.',
       support: 'Just draw one big circle with me.',
       stretch: 'Next time: write the word CAT yourself!',
+      spotlight: '🖍️📖',
       groundingText: `
 Lesson: Draw It, Tell It (age 5). Warm-up draw yourself → stretch spot the spelled word → strong tell two sentences.
 Goal: Draw a scene with a person; recognize the spelled word CAT; tell the drawing's story in 2+ sentences.

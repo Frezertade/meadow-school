@@ -88,16 +88,18 @@ describe('lessonSkills + weakestSkills', () => {
   it('dedupes skills in first-appearance order', () => {
     assert.deepEqual(lessonSkills(l), ['s1', 's2', 's3']);
   });
-  it('returns least-practiced below-solid skills first', () => {
+  it('only reviews touched-but-unmastered skills', () => {
+    // s1 solid, s2/s3 never touched → no review (fresh material, not review)
     const mastery = { 'kid:s1': { seen: 3, lastSeen: '2026-01-01' } };
-    assert.deepEqual(weakestSkills(l, 'kid', mastery, 5), ['s2', 's3']);
+    assert.deepEqual(weakestSkills(l, 'kid', mastery, 5), []);
   });
   it('excludes solid skills and respects count', () => {
     const mastery = {
       'kid:s1': { seen: 1, lastSeen: '2026-02-01' },
       'kid:s2': { seen: 2, lastSeen: '2026-01-01' },
+      'kid:s3': { seen: 1, lastSeen: '2026-03-01' },
     };
-    // seen 0 (s3) < seen 1 (s1) < seen 2 (s2): least-practiced first
-    assert.deepEqual(weakestSkills(l, 'kid', mastery, 2), ['s3', 's1']);
+    // seen 1 (s1, s3) before seen 2 (s2); stalest first among ties
+    assert.deepEqual(weakestSkills(l, 'kid', mastery, 2), ['s1', 's3']);
   });
 });

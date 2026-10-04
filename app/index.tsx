@@ -9,7 +9,6 @@ import { VoiceBar } from '@/components/VoiceBar';
 import {
   isLessonUnlocked,
   sortedPathLessons,
-  unlockedDifficulty,
 } from '@/lib/progress';
 import { colors, fonts, radii, space } from '@/lib/theme';
 import { useActiveChild, useAppStore } from '@/lib/store';
@@ -158,63 +157,69 @@ export default function HomeScreen() {
           <Text style={styles.bandDesc}>{band.description}</Text>
         </View>
 
-        <Text style={styles.section}>Today’s path (easy → stronger)</Text>
-        {pathLessons.map((lesson) => {
-          const key = `${child.id}:${lesson.id}`;
-          const doneIds = completed[key] || [];
-          const total = lesson.exercises.length;
-          const done = total > 0 && doneIds.length >= total;
-          const unlocked = isLessonUnlocked(lesson, band.lessons, completed, child.id);
-          const level = unlockedDifficulty(lesson, doneIds);
+        <Text style={styles.section}>Next up</Text>
+        {(() => {
+          const states = pathLessons.map((lesson) => {
+            const key = `${child.id}:${lesson.id}`;
+            const doneIds = completed[key] || [];
+            const total = lesson.exercises.length;
+            return {
+              lesson,
+              done: total > 0 && doneIds.length >= total,
+              unlocked: isLessonUnlocked(lesson, band.lessons, completed, child.id),
+            };
+          });
+          const next = states.find((s) => s.unlocked && !s.done);
           return (
-            <Pressable
-              key={lesson.id}
-              style={[styles.lessonCard, !unlocked && styles.lessonLocked]}
-              onPress={() => {
-                if (!unlocked) return;
-                unlockVoice();
-                router.push(`/lesson/${lesson.id}`);
-              }}
-              accessibilityRole="button"
-              accessibilityLabel={`${lesson.title}${done ? ', completed' : !unlocked ? ', locked' : ''}`}
-              accessibilityHint={unlocked ? 'Open this lesson' : 'Finish the previous lesson to unlock'}
-            >
-              <View style={styles.lessonTop}>
-                <Text style={styles.lessonSubject}>
-                  Step {lesson.pathOrder ?? '—'} · {lesson.subject}
-                </Text>
-                {done ? (
-                  <Text style={styles.done}>Done</Text>
-                ) : !unlocked ? (
-                  <Text style={styles.locked}>Locked</Text>
-                ) : (
-                  <Text style={styles.level}>Lv {level}/3</Text>
-                )}
-              </View>
-              <Text style={styles.lessonTitle}>{lesson.title}</Text>
-              <Text style={styles.lessonSummary}>
-                {!unlocked
-                  ? 'Finish the previous lesson to unlock this stronger step.'
-                  : lesson.summary}
-              </Text>
-              <Text style={styles.lessonMeta}>
-                {lesson.minutes} min · {total} challenges · warm-up → stretch → strong
-              </Text>
-              <View
-                style={styles.track}
-                accessibilityRole="progressbar"
-                accessibilityLabel={`${doneIds.length} of ${total} challenges done`}
-              >
-                <View
-                  style={[
-                    styles.fill,
-                    { width: `${total ? Math.round((doneIds.length / total) * 100) : 0}%` },
-                  ]}
-                />
-              </View>
-            </Pressable>
+            <>
+              {next ? (
+                <Pressable
+                  style={styles.nextCard}
+                  onPress={() => {
+                    unlockVoice();
+                    router.push(`/lesson/${next.lesson.id}`);
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Start next lesson: ${next.lesson.title}`}
+                >
+                  <Text style={styles.nextLabel}>
+                    Step {next.lesson.pathOrder ?? '—'} · {next.lesson.subject} · {next.lesson.minutes} min
+                  </Text>
+                  <Text style={styles.nextTitle}>{next.lesson.title}</Text>
+                  <Text style={styles.nextSummary}>{next.lesson.summary}</Text>
+                  <Text style={styles.nextGo}>▶ Start the show</Text>
+                </Pressable>
+              ) : (
+                <View style={styles.nextCard}>
+                  <Text style={styles.nextTitle}>Path complete! 🎉</Text>
+                  <Text style={styles.nextSummary}>
+                    Every step finished. Replay a favorite or visit another age band below.
+                  </Text>
+                </View>
+              )}
+              <Text style={styles.section}>Full path</Text>
+              {states.map(({ lesson, done, unlocked }) => (
+                <Pressable
+                  key={lesson.id}
+                  style={[styles.pathRow, !unlocked && styles.lessonLocked]}
+                  onPress={() => {
+                    if (!unlocked) return;
+                    unlockVoice();
+                    router.push(`/lesson/${lesson.id}`);
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${lesson.title}${done ? ', completed' : !unlocked ? ', locked' : ''}`}
+                >
+                  <Text style={styles.pathStep}>{lesson.pathOrder ?? '—'}</Text>
+                  <Text style={styles.pathTitle} numberOfLines={1}>
+                    {lesson.title}
+                  </Text>
+                  <Text style={styles.pathStatus}>{done ? '✅' : !unlocked ? '🔒' : '▶'}</Text>
+                </Pressable>
+              ))}
+            </>
           );
-        })}
+        })()}
 
         <Text style={styles.otherBands}>Other ages</Text>
         {curriculumBands
@@ -327,37 +332,58 @@ const styles = StyleSheet.create({
     letterSpacing: 0.6,
     marginTop: space.sm,
   },
-  lessonCard: {
-    backgroundColor: colors.white,
-    borderRadius: radii.md,
-    padding: space.md,
-    borderWidth: 1,
-    borderColor: colors.paperDeep,
-    gap: 4,
+  nextCard: {
+    backgroundColor: colors.meadow,
+    borderRadius: radii.lg,
+    padding: space.lg,
+    gap: 6,
+    marginBottom: space.sm,
   },
-  lessonLocked: { opacity: 0.55 },
-  lessonTop: { flexDirection: 'row', justifyContent: 'space-between' },
-  lessonSubject: {
+  nextLabel: {
     fontFamily: fonts.bodyBold,
-    fontSize: 11,
-    color: colors.inkSoft,
-    textTransform: 'uppercase',
+    fontSize: 12,
+    color: colors.honey,
     letterSpacing: 1,
   },
-  done: { fontFamily: fonts.bodyBold, fontSize: 12, color: colors.success },
-  locked: { fontFamily: fonts.bodyBold, fontSize: 12, color: colors.danger },
-  level: { fontFamily: fonts.bodyBold, fontSize: 12, color: colors.honey },
-  lessonTitle: { fontFamily: fonts.displaySoft, fontSize: 22, color: colors.ink },
-  lessonSummary: { fontFamily: fonts.body, fontSize: 15, color: colors.inkSoft, lineHeight: 22 },
-  lessonMeta: { fontFamily: fonts.body, fontSize: 13, color: colors.inkSoft, marginTop: 4 },
-  track: {
-    height: 8,
+  nextTitle: { fontFamily: fonts.display, fontSize: 28, color: colors.white },
+  nextSummary: { fontFamily: fonts.body, fontSize: 15, color: colors.white, lineHeight: 22, opacity: 0.9 },
+  nextGo: {
+    fontFamily: fonts.bodyBold,
+    fontSize: 17,
+    color: colors.ink,
+    backgroundColor: colors.honey,
     borderRadius: radii.pill,
-    backgroundColor: colors.paperDeep,
-    marginTop: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    alignSelf: 'flex-start',
+    marginTop: 6,
     overflow: 'hidden',
   },
-  fill: { height: 8, backgroundColor: colors.meadow },
+  pathRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: colors.white,
+    borderRadius: radii.md,
+    paddingVertical: 12,
+    paddingHorizontal: space.md,
+    borderWidth: 1,
+    borderColor: colors.paperDeep,
+  },
+  pathStep: {
+    fontFamily: fonts.bodyBold,
+    fontSize: 13,
+    color: colors.white,
+    backgroundColor: colors.meadow,
+    borderRadius: 999,
+    width: 26,
+    height: 26,
+    textAlign: 'center',
+    lineHeight: 26,
+  },
+  pathTitle: { fontFamily: fonts.bodyBold, fontSize: 15, color: colors.ink, flex: 1 },
+  pathStatus: { fontSize: 16 },
+  lessonLocked: { opacity: 0.55 },
   otherBands: {
     fontFamily: fonts.bodyExtra,
     fontSize: 14,

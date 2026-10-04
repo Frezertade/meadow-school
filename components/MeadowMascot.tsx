@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { StyleSheet } from 'react-native';
 import Animated, {
   cancelAnimation,
@@ -11,6 +11,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import type { MascotMood } from '@/lib/agent/director';
+import { prefersReducedMotion } from '@/lib/reducedMotion';
 
 interface Props {
   mood: MascotMood;
@@ -25,8 +26,11 @@ export function MeadowMascot({ mood, size = 104 }: Props) {
   const y = useSharedValue(0);
   const r = useSharedValue(0);
   const s = useSharedValue(1);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const still = useMemo(() => prefersReducedMotion(), []);
 
   useEffect(() => {
+    if (still) return;
     cancelAnimation(y);
     cancelAnimation(r);
     cancelAnimation(s);

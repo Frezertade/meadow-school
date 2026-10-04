@@ -40,6 +40,7 @@ export const TEMPLATE_LESSON: Lesson = {
   summary: 'One line: what the child will be able to do.',
   support: 'Easier on-ramp offered when the child is stuck.',
   stretch: 'Harder twist teased at celebration for breezing children.',
+  spotlight: 'Big stage visual: letters or emoji, e.g. "Aa 🍎".',
   groundingText: `
 Lesson: <title> (age band). Incremental path: warm-up → stretch → strong.
 Goal: <observable skill, e.g. "Blend three sounds into a CVC word">.

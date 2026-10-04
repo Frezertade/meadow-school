@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.3.0 — 2026-10-04 — Show polish loop
+
+Every scene teaches visually; transport seeks; home leads with Next up.
+
+- Lesson `spotlight` visuals (31 backfilled): the stage shows the teaching —
+  big letters, counts, shapes, patterns — plus a moment ribbon per scene
+- Exercise content on stage: math visuals, listen-say phrases, sequence maps
+- Captions cut to two beats (short line + question); greetings trimmed
+- Transport markers are tappable: jump straight to any play break (locks still hold)
+- Home is Next-up-first: hero start card + compact full path, no wall of locked doors
+- Idle nudge at 30s, once per lesson; focus blur fix; prefers-reduced-motion path
+- Fixed: fresh children no longer get a bogus "last time we practiced" review
+
 ## 1.2.0 — 2026-10-04 — Meadow Show
 
 Video-style animated lessons with an agentic mascot. Replaces the static

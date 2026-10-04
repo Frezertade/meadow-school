@@ -47,10 +47,10 @@ export function buildTeachPlan(
   const turns: TeachTurn[] = [];
 
   const greetSay = opts.skipWarmups
-    ? `Welcome back, ${name}! You've done the warm-ups before — let's jump to the good stuff in ${lesson.title}. Ready?`
+    ? `Welcome back, ${name}! Warm-ups done — straight to the good stuff. Ready?`
     : opts.memoryLine
-      ? `Hi ${name}! ${opts.memoryLine} Now let's learn about ${lesson.title}. Ready to play?`
-      : `Hi ${name}! I'm Meadow, your teacher for today. We're learning about ${lesson.title}. Ready to play and learn with me?`;
+      ? `Hi ${name}! ${opts.memoryLine} Today: ${lesson.title}. Ready?`
+      : `Hi ${name}! Today: ${lesson.title}. Ready to play?`;
   turns.push({
     phase: 'greet',
     say: greetSay,
@@ -84,10 +84,11 @@ export function buildTeachPlan(
       waitForChild: true,
     });
 
+    const check = checkQuestion(block, lesson);
     turns.push({
       phase: 'check',
-      say: checkQuestion(block, lesson, name),
-      ask: 'What do you think?',
+      say: check.say,
+      ask: check.ask,
       chips: checkChips(block, lesson),
       waitForChild: true,
       blockIndex: lesson.blocks.indexOf(block),
@@ -113,7 +114,7 @@ export function buildTeachPlan(
 
     turns.push({
       phase: 'exercise_intro',
-      say: introduceExercise(ex, name),
+      say: introduceExercise(ex),
       exerciseId: ex.id,
       chips: ["Let's try it", 'Explain again'],
       waitForChild: true,
@@ -169,17 +170,17 @@ function conversationalBite(block: LessonBlock, lesson: Lesson): string {
   return `${lead}${first}`;
 }
 
-function checkQuestion(block: LessonBlock, lesson: Lesson, name: string): string {
+function checkQuestion(block: LessonBlock, lesson: Lesson): { say: string; ask: string } {
   if (lesson.subject === 'english' && /letter|sound|\/[a-z]\//i.test(block.text + lesson.groundingText)) {
-    return `${name}, quick check — what letter or sound are we practicing?`;
+    return { say: 'Quick check!', ask: 'What letter or sound are we practicing?' };
   }
   if (lesson.subject === 'math') {
-    return `${name}, quick check — what were we counting or adding?`;
+    return { say: 'Quick check!', ask: 'What were we counting?' };
   }
   if (lesson.subject === 'safety') {
-    return `${name}, quick check — what should we do if the alarm beeps?`;
+    return { say: 'Quick check!', ask: 'What is the safe thing to do?' };
   }
-  return `${name}, can you tell me one thing we just learned?`;
+  return { say: 'Quick check!', ask: 'Tell me one thing we just learned!' };
 }
 
 function checkChips(block: LessonBlock, lesson: Lesson): string[] {
@@ -197,20 +198,9 @@ function checkChips(block: LessonBlock, lesson: Lesson): string[] {
   return ['I remember!', 'Say it again', 'I forgot'];
 }
 
-function introduceExercise(ex: Exercise, name: string): string {
-  if (ex.kind === 'reading') {
-    return `${name}, tap challenge: ${ex.instruction} Listen first, then choose.`;
-  }
-  if (ex.kind === 'math') {
-    return `${name}, math challenge: ${ex.instruction} Take your time.`;
-  }
-  if (ex.kind === 'sequence') {
-    return `${name}, ordering challenge: ${ex.instruction} Tap each step in order.`;
-  }
-  if (ex.kind === 'listen-say') {
-    return `${name}, listening challenge: ${ex.instruction} Hear it, then say it back.`;
-  }
-  return `${name}, drawing time: ${ex.instruction} There is no wrong art.`;
+function introduceExercise(ex: Exercise): string {
+  // Instructions already say Warm-up/Stretch/Strong — keep the line to one beat.
+  return `Your turn — ${ex.instruction}`;
 }
 
 export function reactToChildReply(

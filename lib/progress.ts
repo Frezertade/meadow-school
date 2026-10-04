@@ -73,7 +73,8 @@ export interface SkillSnapshot {
 
 /**
  * Skills in this lesson that need review most: least-practiced first,
- * stalest first. Only returns skills below solid.
+ * stalest first. Only returns skills the child has actually touched but not
+ * yet mastered — unseen skills are new material, not review.
  */
 export function weakestSkills(
   lesson: Lesson,
@@ -86,7 +87,7 @@ export function weakestSkills(
       const snap = mastery[`${childId}:${skillId}`];
       return { skillId, seen: snap?.seen ?? 0, lastSeen: snap?.lastSeen ?? '' };
     })
-    .filter((s) => skillLevel(s.seen) !== 'solid')
+    .filter((s) => s.seen >= 1 && skillLevel(s.seen) !== 'solid')
     .sort((a, b) => a.seen - b.seen || a.lastSeen.localeCompare(b.lastSeen))
     .slice(0, Math.max(0, count))
     .map((s) => s.skillId);

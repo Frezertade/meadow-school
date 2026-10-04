@@ -17,6 +17,7 @@ export const ages67: CurriculumBand = {
       summary: 'Read and sort -at / -an words; write a short sentence.',
       support: 'Just read one word: cat.',
       stretch: 'Next time: write your own -an sentence!',
+      spotlight: '🐱🎩',
       groundingText: `
 Lesson: Short A Word Family (ages 6–7 / grade 1 trail). Incremental path: warm-up → stretch → strong.
 Goal: Read CVC words with short a; notice -at and -an families; write one simple sentence; later sort -an words and complete a sentence.
@@ -113,6 +114,7 @@ Key facts:
       summary: 'Add two groups within 10 using pictures and number sentences.',
       support: 'Just count all the dots with me.',
       stretch: 'Next time: find missing numbers like 3 + __ = 7!',
+      spotlight: '🔵➕',
       groundingText: `
 Lesson: Adding Within 10 (ages 6–7). Incremental path: warm-up → stretch → strong.
 Goal: Combine two groups; write number sentences like 3+4=7; stay within 10; later add to 10 and find a missing part.
@@ -196,6 +198,7 @@ Key facts:
       summary: 'Observe that plants need water, light, and soil.',
       support: 'Just name one need: water.',
       stretch: 'Next time: label every plant part!',
+      spotlight: '🌱☀️💧',
       groundingText: `
 Lesson: What Plants Need (ages 6–7). Incremental path: warm-up → stretch → strong.
 Goal: Name three needs of plants: water, light, soil (or good place to grow); observe a leaf or plant; later spot what plants do NOT need and label plant parts.
@@ -272,6 +275,7 @@ Key facts:
       summary: 'Meet a few PA symbols and practice map vocabulary.',
       support: 'Just echo: mountain lau-rel.',
       stretch: 'Next time: name bird AND flower from memory!',
+      spotlight: '🌸🐦',
       groundingText: `
 Lesson: Pennsylvania Symbols (ages 6–7). Incremental path: warm-up → stretch → strong.
 Goal: Know Pennsylvania is our state; recognize the ruffed grouse (state bird) and mountain laurel (state flower) as friendly facts; use words town, state, country; later match both symbols and show community care.
@@ -345,6 +349,7 @@ Key facts (keep accurate and light):
       summary: 'Practice a calm family exit plan and meeting place.',
       support: 'Just walk calmly to me.',
       stretch: 'Next time: map two ways out of every room!',
+      spotlight: '🔥🚪',
       groundingText: `
 Lesson: Home Fire Drill Plan (ages 6–7). Incremental path: warm-up → stretch → strong.
 Goal: Know two ways out when possible; know an outdoor meeting place; never go back inside; grown-ups lead; later recall smoke-alarm steps and map two exits.
@@ -422,6 +427,7 @@ Key facts (calm, never graphic):
       summary: 'Read st-, bl-, cr- blends; say a blend word aloud.',
       support: 'Just hiss one s: sss.',
       stretch: 'Next time: read str- words like string!',
+      spotlight: '🛑',
       groundingText: `
 Lesson: Slide the Blends (ages 6–7). Warm-up say stop → stretch bl- words → strong cr- words.
 Goal: Read beginning blends st, bl, cr; slide the two sounds together without a vowel between.
@@ -492,6 +498,7 @@ Do NOT teach: ending blends (-st, -nd) or three-letter blends (str-) yet.
       summary: 'Build a sentence word-by-word; order a tiny story.',
       support: 'Just say two words: The cat.',
       stretch: 'Next time: write three sentences alone!',
+      spotlight: '🐱💺',
       groundingText: `
 Lesson: My Two Sentences (ages 6–7). Warm-up capitals → stretch build a sentence → strong order a story.
 Goal: Start sentences with capitals; arrange words into "The cat sat."; order beginning→middle→end of a 3-step story.
@@ -563,6 +570,7 @@ Do NOT teach: formal grammar terms beyond capital and period.
       summary: 'Subtract within 10; solve a take-away word problem.',
       support: 'Just fold down one finger with me.',
       stretch: 'Next time: solve two-step stories!',
+      spotlight: '🍪➖',
       groundingText: `
 Lesson: Take Away to Ten (ages 6–7). Warm-up take 2 away → stretch count back → strong word problem.
 Goal: Subtract within 10 as take-away; count back from the start; solve one-step take-away stories.
@@ -636,6 +644,7 @@ Do NOT teach: borrowing/regrouping or subtraction above 10.
       summary: 'Build tens and ones to 100; count by tens.',
       support: 'Just count towers: ten, twenty.',
       stretch: 'Next time: build 100 with ten towers!',
+      spotlight: '🟧🟧',
       groundingText: `
 Lesson: Tens and Ones Towers (ages 6–7). Warm-up tens in 30 → stretch break 24 apart → strong count by tens.
 Goal: Say 30 is three tens; split 24 into 2 tens and 4 ones; count 10, 20, 30… to 100.
@@ -708,6 +717,7 @@ Do NOT teach: hundreds place or adding two-digit numbers.
       summary: 'Trace sun→cloud→rain; draw and label today’s weather.',
       support: 'Just point at the sky with me.',
       stretch: 'Next time: track weather for a whole week!',
+      spotlight: '🌧️',
       groundingText: `
 Lesson: Where Rain Comes From (ages 6–7). Warm-up rain from clouds → stretch order the water trip → strong draw today.
 Goal: Say rain falls from clouds; order sun-heats-water → clouds-gather → rain-falls; observe and label today's weather.
@@ -777,6 +787,7 @@ Do NOT teach: evaporation vocabulary tests or storm chasing of any kind.
       summary: 'Read map symbols; draw your street; explain one safety rule.',
       support: 'Just point at the star: you!',
       stretch: 'Next time: map your whole neighborhood!',
+      spotlight: '⭐🗺️',
       groundingText: `
 Lesson: Map of My Street (ages 6–7). Warm-up star means you → stretch draw your street → strong why rules exist.
 Goal: Read "you are here" star and simple symbols; draw a street with 2+ landmarks; explain one rule that keeps people safe.

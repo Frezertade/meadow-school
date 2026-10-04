@@ -30,6 +30,17 @@ describe('content ↔ engine consistency', () => {
     assert.deepEqual(missing, []);
   });
 
+  it('every lesson has a stage spotlight visual', async () => {
+    const bands = await loadBands();
+    const missing = [];
+    for (const band of bands) {
+      for (const lesson of band.lessons) {
+        if (!lesson.spotlight?.trim()) missing.push(lesson.id);
+      }
+    }
+    assert.deepEqual(missing, []);
+  });
+
   it('skillLevel never reports solid below 3 sightings', () => {
     assert.notEqual(skillLevel(2), 'solid');
   });
