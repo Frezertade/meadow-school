@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
     color: colors.ink,
     textAlign: 'center',
   },
-  zoneLabel: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.inkSoft },
+  zoneLabel: { fontFamily: fonts.bodyBold, fontSize: 15, color: colors.inkSoft },
   zone: {
     gap: 6,
     backgroundColor: colors.skySoft,

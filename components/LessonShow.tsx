@@ -298,8 +298,8 @@ const styles = StyleSheet.create({
   },
   backBtn: { paddingVertical: 10, paddingRight: 12, minHeight: 48, justifyContent: 'center' },
   back: { fontFamily: fonts.bodyBold, fontSize: 16, color: colors.meadow },
-  scene: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.inkSoft, flex: 1, textAlign: 'center' },
-  stars: { fontFamily: fonts.bodyBold, fontSize: 14, color: colors.ink },
+  scene: { fontFamily: fonts.bodyBold, fontSize: 15, color: colors.inkSoft, flex: 1, textAlign: 'center' },
+  stars: { fontFamily: fonts.bodyBold, fontSize: 16, color: colors.ink },
   content: { padding: space.md, paddingBottom: space.xl * 2, gap: space.sm },
   stage: {
     borderRadius: radii.lg,
@@ -336,10 +336,12 @@ const styles = StyleSheet.create({
   fill: { height: 10, borderRadius: radii.pill, backgroundColor: colors.meadow },
   markerHit: {
     position: 'absolute',
-    top: -10,
-    width: 30,
-    height: 30,
-    marginLeft: -15,
+    top: -17,
+    // 44px minimum touch target: a 3-year-old's finger is not a cursor, and
+    // these markers sit close together on a phone.
+    width: 44,
+    height: 44,
+    marginLeft: -22,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -383,7 +385,7 @@ const styles = StyleSheet.create({
     borderColor: colors.paperDeep,
     gap: space.sm,
   },
-  playBreak: { fontFamily: fonts.bodyBold, fontSize: 14, color: colors.meadow },
+  playBreak: { fontFamily: fonts.bodyBold, fontSize: 15, color: colors.meadow },
   lockNote: { fontFamily: fonts.body, color: colors.inkSoft, fontSize: 15 },
   voiceBanner: {
     flexDirection: 'row',

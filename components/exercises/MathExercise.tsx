@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
   prompt: { fontFamily: fonts.displaySoft, fontSize: 22, color: colors.meadow, textAlign: 'center' },
   tapHint: {
     fontFamily: fonts.body,
-    fontSize: 12,
+    fontSize: 15,
     color: colors.inkSoft,
     textAlign: 'center',
     marginBottom: space.xs,

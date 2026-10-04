@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
   wrap: { alignItems: 'center', gap: 4 },
   ribbon: {
     fontFamily: fonts.bodyBold,
-    fontSize: 13,
+    fontSize: 15,
     color: colors.white,
     backgroundColor: colors.ink,
     paddingHorizontal: 12,

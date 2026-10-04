@@ -15,6 +15,10 @@ Fixed by clicking through lessons, not by reading the code.
   repeated on every exercise, ~20x per lesson
 - **Buttons no longer masquerade as speech** — tapping a chip showed
   `You said: "Let's try it"`. Only real mic input is echoed now
+- **Tap targets and text legible on phones** — transport markers expanded to
+  44×44 (iOS minimum), scene count/stars a touch bigger, and the small
+  "Tap to hear..." hints bumped to 15px for thumbs + preschool eyes (verified
+  on iPhone SE and iPhone 14 Pro Max)
 
 ## 1.3.0 — 2026-10-04 — Show polish loop
 

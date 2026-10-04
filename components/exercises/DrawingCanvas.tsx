@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
   },
   tapHint: {
     fontFamily: fonts.body,
-    fontSize: 12,
+    fontSize: 15,
     color: colors.inkSoft,
     marginBottom: space.xs,
   },
