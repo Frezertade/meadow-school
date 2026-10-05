@@ -20,7 +20,7 @@ export default function LessonScreen() {
       <LessonShow
         lesson={lesson}
         childName={child.name}
-        onBack={() => router.back()}
+        onBack={() => { try { router.back(); } catch {} if (typeof window !== "undefined") { window.history.length > 1 ? window.history.back() : router.replace("/"); } else { router.replace("/"); } }}
       />
     </ScrollView>
   );
