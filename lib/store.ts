@@ -79,6 +79,16 @@ interface ProgressState {
   mastery: Record<string, SkillMastery>;
   /** Earned stars keyed `${childId}:${lessonId}` — one per finished lesson */
   stars: Record<string, true>;
+  /** Consecutive lesson completion days keyed `${childId}` */
+  streakDays: Record<string, number>;
+  /** Last completion date (YYYY-MM-DD) keyed `${childId}` */
+  lastCompletionDate: Record<string, string>;
+  /** Total lessons completed keyed `${childId}` */
+  lessonsCompleted: Record<string, number>;
+  /** Consecutive exercises correct streak in current lesson keyed `${childId}` */
+  streakCorrect: Record<string, number>;
+  /** Best correct streak keyed `${childId}` */
+  bestStreakCorrect: Record<string, number>;
   /** Neural voice id (F2 default) or `browser` for device TTS only. */
   meadowVoiceId: MeadowVoiceChoice;
   /** Optional OpenAI key for smarter conversational teaching (parent desk). Never committed. */
@@ -95,6 +105,8 @@ interface ProgressState {
   clearActiveLesson: () => void;
   isLessonComplete: (lessonId: string, exerciseCount: number) => boolean;
   getCompletedIds: (lessonId: string) => string[];
+  onExerciseRight: (lessonId: string, lessonTitle?: string) => void;
+  onExerciseWrong: (lessonId: string) => void;
   setParentUnlocked: (v: boolean) => void;
   restoreBackup: (data: {
     children: ChildProfile[];
@@ -145,6 +157,11 @@ export const useAppStore = create<ProgressState>()(
       logs: [],
       mastery: {},
       stars: {},
+      streakDays: {},
+      lastCompletionDate: {},
+      lessonsCompleted: {},
+      streakCorrect: {},
+      bestStreakCorrect: {},
       activeLearning: null,
       parentUnlocked: false,
       voiceEnabled: true,
@@ -291,6 +308,29 @@ export const useAppStore = create<ProgressState>()(
         if (!already) {
           set({ stars: { ...(get().stars ?? {}), [skey]: true } });
         }
+        const today = new Date().toISOString().slice(0, 10);
+        const last = get().lastCompletionDate?.[child.id];
+        let newStreak = get().streakDays?.[child.id] ?? 0;
+        if (!last) {
+          newStreak = 1;
+        } else {
+          const lastDate = new Date(last + 'T00:00:00');
+          const t = new Date(today + 'T00:00:00');
+          const diff = Math.floor((t.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+          if (diff === 0) {
+            newStreak = get().streakDays?.[child.id] ?? 1;
+          } else if (diff === 1) {
+            newStreak = (get().streakDays?.[child.id] ?? 0) + 1;
+          } else {
+            newStreak = 1;
+          }
+        }
+        const total = (get().lessonsCompleted?.[child.id] ?? 0) + (already ? 0 : 1);
+        set({
+          lastCompletionDate: { ...(get().lastCompletionDate ?? {}), [child.id]: today },
+          streakDays: { ...(get().streakDays ?? {}), [child.id]: newStreak },
+          lessonsCompleted: { ...(get().lessonsCompleted ?? {}), [child.id]: total },
+        });
         pushLog(get, set, {
           kind: 'lesson_complete',
           childId: child.id,
@@ -341,6 +381,22 @@ export const useAppStore = create<ProgressState>()(
           lessonTitle: meta?.lessonTitle,
           exerciseId,
           detail: meta?.detail || `${child.name} cleared an exercise`,
+        });
+      },
+
+      onExerciseRight: (lessonId: string, lessonTitle?: string) => {
+        const child = childOf(get);
+        const c = (get().streakCorrect?.[child.id] ?? 0) + 1;
+        const b = Math.max(c, get().bestStreakCorrect?.[child.id] ?? 0);
+        set({
+          streakCorrect: { ...(get().streakCorrect ?? {}), [child.id]: c },
+          bestStreakCorrect: { ...(get().bestStreakCorrect ?? {}), [child.id]: b },
+        });
+      },
+      onExerciseWrong: (lessonId: string) => {
+        const child = childOf(get);
+        set({
+          streakCorrect: { ...(get().streakCorrect ?? {}), [child.id]: 0 },
         });
       },
 
@@ -400,6 +456,10 @@ export const useAppStore = create<ProgressState>()(
         completed: s.completed,
         mastery: s.mastery ?? {},
         stars: s.stars ?? {},
+        streakDays: s.streakDays ?? {},
+        lastCompletionDate: s.lastCompletionDate ?? {},
+        lessonsCompleted: s.lessonsCompleted ?? {},
+        bestStreakCorrect: s.bestStreakCorrect ?? {},
         voiceEnabled: s.voiceEnabled,
         meadowVoiceId: s.meadowVoiceId,
         logs: s.logs,

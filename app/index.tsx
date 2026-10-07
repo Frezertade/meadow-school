@@ -5,6 +5,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { curriculumBands, getBand } from '@/content';
 import { MeadowGarden } from '@/components/MeadowGarden';
+import { BadgePanel } from '@/components/BadgePanel';
 import { VoiceBar } from '@/components/VoiceBar';
 import {
   isLessonUnlocked,
@@ -30,6 +31,9 @@ export default function HomeScreen() {
   const setVoiceEnabled = useAppStore((s) => s.setVoiceEnabled);
   const activeLearning = useAppStore((s) => s.activeLearning);
   const stars = useAppStore((s) => s.stars ?? {});
+  const streakDays = useAppStore((s) => s.streakDays?.[child.id] ?? 0);
+  const lessonsCompleted = useAppStore((s) => s.lessonsCompleted?.[child.id] ?? 0);
+  const bestStreakCorrect = useAppStore((s) => s.bestStreakCorrect?.[child.id] ?? 0);
   const starCount = Object.keys(stars).filter((k) => k.startsWith(child.id)).length;
   const band = getBand(child.ageBand);
   const pathLessons = sortedPathLessons(band.lessons);
@@ -150,6 +154,12 @@ export default function HomeScreen() {
         </View>
 
         <MeadowGarden stars={starCount} childName={child.name} />
+        <BadgePanel
+          streakDays={streakDays}
+          lessonsCompleted={lessonsCompleted}
+          bestStreakCorrect={bestStreakCorrect}
+          childName={child.name}
+        />
 
         <View style={styles.bandCard}>
           <Text style={styles.bandLabel}>{band.ageRange}</Text>

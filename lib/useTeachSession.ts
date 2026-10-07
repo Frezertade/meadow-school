@@ -379,6 +379,7 @@ export function useTeachSession({ lesson, childName, onBack }: Props) {
       detail: `${childName} cleared ${exerciseId}`,
       skillId: doneExercise?.skillId,
     });
+    useAppStore.getState().onExerciseRight?.(lesson.id, lesson.title);
     setLastResult('correct');
     playStinger('ding');
     const nextDone = [...doneIds, exerciseId];
@@ -394,8 +395,9 @@ export function useTeachSession({ lesson, childName, onBack }: Props) {
 
   const onExerciseWrong = useCallback(() => {
     touch();
+    useAppStore.getState().onExerciseWrong?.(lesson.id);
     setLastResult('wrong');
-  }, [touch]);
+  }, [touch, lesson.id]);
 
   const startTeacher = () => {
     // Drop focus from the start overlay so screen readers don't get trapped.
